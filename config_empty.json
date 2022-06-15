@@ -1,0 +1,15 @@
+{
+    "api": {
+        "username":"",
+        "password":"",
+        "url":"",
+        "token": ""
+    },
+    "proxy_dict": {
+        "http": "",
+        "https": "",
+        "ftp": ""
+    }, 
+    "use_proxy": false
+}
+
