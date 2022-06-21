@@ -1,5 +1,16 @@
 ## pydrodelta
 
+módulo generación de condiciones de borde
+
+- se definen las clases boundarySerie, boundary y boundarySet
+- se define un esquema json para la configuración de las condiciones de borde (boundarySet)
+- se instancia una clase boundarySet usando el archivo json de configuración y:
+- lee series de entrada de a5 boundarySet.loadData()
+- regulariza las series .regularize()
+- rellena nulos .fillNulls()
+- guarda observaciones en archivo csv o json .saveData()
+- guarda observaciones en a5 .uploadData() 
+
 ### use examples
 
 #### a5 api series to/from dataframe
