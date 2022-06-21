@@ -1222,8 +1222,8 @@ def readSerie(series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=Fal
     params = {}
     if timestart is not None and timeend is not None:
         params = {
-            "timestart": timestart if isinstance(timestart,str) else timestart.isoformat,
-            "timeend": timeend if isinstance(timestart,str) else timeend.isoformat
+            "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
+            "timeend": timeend if isinstance(timestart,str) else timeend.isoformat()
         }
     response = requests.get("%s/obs/%s/series/%i" % (config["api"]["url"], tipo, series_id),
         params = params,
@@ -1284,13 +1284,29 @@ def readVar(var_id,use_proxy=False):
     json_response = response.json()
     return json_response
 
+
+
 ## EJEMPLO
 '''
 import pydrodelta.a5 as a5
+import pydrodelta.util as util
 # lee serie de api a5
 serie = a5.readSerie(31532,"2022-05-25T03:00:00Z","2022-06-01T03:00:00Z")
+serie2 = a5.readSerie(26286,"2022-05-01T03:00:00Z","2022-06-01T03:00:00Z")
 # convierte observaciones a dataframe 
 obs_df = a5.observacionesListToDataFrame(serie["observaciones"]) 
+obs_df2 = a5.observacionesListToDataFrame(serie["observaciones"]) 
+# crea index regular
+new_index = util.createRegularDatetimeSequence(obs_df.index,timedelta(days=1))
+# crea index regular a partir de timestart timeend
+timestart = util.tryParseAndLocalizeDate("1989-10-14T03:00:00.000Z")
+timeend = util.tryParseAndLocalizeDate("1990-03-10T03:00:00.000Z")
+new_index=util.createDatetimeSequence(timeInterval=timedelta(days=1),timestart=timestart,timeend=timeend,timeOffset=timedelta(hours=6))
+# genera serie regular
+reg_df = util.serieRegular(obs_df,timeInterval=timedelta(hours=12))
+reg_df2 = util.serieRegular(obs_df2,timeInterval=timedelta(hours=12),interpolation_limit=1)
+# rellena nulos con otra serie
+filled_df = util.serieFillNulls(reg_df,reg_df2)
 # convierte de dataframe a lista de dict
 obs_list = a5.observacionesDataFrameToList(obs_df,series_id=serie["id"])
 # valida observaciones
