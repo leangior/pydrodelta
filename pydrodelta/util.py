@@ -2,6 +2,7 @@ import dateutil.parser
 import pytz
 import pandas
 from datetime import timedelta
+import numpy as np
 
 def interval2timedelta(interval):
     days = 0
@@ -105,4 +106,36 @@ def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, colum
     if fill_value is not None:
         data[column] = data[column].fillna(fill_value)
     return data
+
+def removeOutliers(data : pandas.DataFrame,limite_outliers,column="valor"):
+    '''
+    remove outliers inline and return outliers data frame
+    '''
+    print('Detecta Outliers:')
+    limit_inf = limite_outliers[0]
+    limit_sup = limite_outliers[1]
+    print("Limite superior",round(limit_sup,2))
+    print("Limite inferior",round(limit_inf,2)) 
+    # Finding the Outliers
+    outliers_iqr = data[( data[column] < limit_inf) | (data[column] > limit_sup)]
+    print('Cantidad de outliers: ',len(outliers_iqr))
+    data[column] = np.where(data[column]>limit_sup,np.nan,
+                   np.where(data[column]<limit_inf,np.nan,
+                   data[column]))
+    return outliers_iqr
+
+def detectJumps(data : pandas.DataFrame,lim_jump,column="valor"):
+    '''
+    returns jump rows as data frame
+    '''
+    print('Detecta Saltos:')	
+    VecDif = abs(np.diff(data[column].values))
+    VecDif = np.append([0,],VecDif)
+    coldiff = 'Diff_Valor'
+    data[coldiff] = VecDif
+    print('Limite Salto (m): ',lim_jump)
+    df_saltos = data[data[coldiff] > lim_jump].sort_values(by=coldiff)
+    print('Cantidad de Saltos',len(df_saltos))
+    del data[coldiff]
+    return df_saltos
 

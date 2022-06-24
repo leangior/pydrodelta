@@ -1259,6 +1259,14 @@ def observacionesListToDataFrame(data: list):
     data.sort_index(inplace=True)
     return data[["valor",]]
 
+def createEmptyObsDataFrame():
+    data = pandas.DataFrame({
+        "timestart": pandas.Series(dtype='datetime64[ns, America/Argentina/Buenos_Aires]'),
+        "valor": pandas.Series(dtype="float")
+    })
+    data.index = data["timestart"]
+    return data[["valor",]]
+
 def createObservaciones(data,series_id : int,column="valor",tipo="puntual", timeSupport=None,use_proxy=False):
     if isinstance(data,pandas.DataFrame):
         data = observacionesDataFrameToList(data,series_id,column,timeSupport)

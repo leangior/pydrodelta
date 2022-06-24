@@ -1,0 +1,81 @@
+{
+    "timestart": "2022-05-01T03:00:00.000Z",
+    "timeend": "2022-06-01T03:00:00.000Z",
+    "boundaries":[
+        {
+            "id": 1,
+            "name": "San Fernando - Stage Hydrograph - 1H",
+            "series":[
+                {"series_id": 85, "lim_outliers":[-3.03,5.0],"lim_jump":0.835,"x_offset":0,"y_offset":0},
+                {"series_id": 52, "lim_outliers":[-2.25,4.62],"lim_jump":0.958,"x_offset":0,"y_offset":0},
+                {"series_id": 3279, "lim_outliers":[-1.82,4.18],"lim_jump":0.8,"x_offset":0,"y_offset":0},
+                {"series_id": 3280, "lim_outliers":[-1.7,3.42],"lim_jump":0.4,"x_offset":0,"y_offset":0},
+                {"series_id": 2111, "lim_outliers":[-2.01,2.66],"lim_jump":0.5,"x_offset":0,"y_offset":0}
+                ],
+            "time_interval": {"hours":1},
+            "output_series_id": 31537
+        },
+        {
+            "id": 2,
+            "name":"Lujan - Flow Hydrograph - 1D",
+            "series":[
+                {"series_id": 26711, "lim_outliers":[0.0,1000.0],"lim_jump":1000.0,"x_offset":0,"y_offset":0, "comment": "LUJAN @ JAUREGUI QmedDiaria UNLU (actual)"},
+                {"series_id": 31536, "lim_outliers":[0.0,10000.0],"lim_jump":1000.0,"x_offset":0,"y_offset":0, "comment": "LUJAN @ JAUREGUI QmedDiaria DPH (viejo)"}  
+                ],
+            "time_interval": {"days":1},
+            "time_offset": null,
+            "fill_value": 50,
+            "output_series_id": 31530
+        },
+        {
+            "id": 3,
+            "name": "Paraná - Stage Hydrograph - 1D",
+            "series":[
+                {"series_id": 26271, "lim_outliers": [-1.5,8.0], "lim_jump": 0.7, "x_offset": 0, "y_offset": 0, "comment": "Paraná Prefectura H media diaria"},
+                {"series_id":26272, "lim_outliers": [-1.5,8.0], "lim_jump":0.7, "x_offset": 0, "y_offset": -0.22, "comment":"Santa Fe prefe H media diaria"},
+                {"series_id": 29439, "lim_outliers": [-1.5,8.0], "lim_jump": 0.7, "x_offset": 0, "y_offset": -0.22, "comment": "Diamante prefectura H media diaria"}
+            ],
+            "time_interval": {"days":1},
+            "time_offset": null,
+            "output_series_id": 31525
+        },
+        {
+            "id": 4,
+            "name": "Nueva Palmira - Stage Hydrograph -1H",
+            "series": [
+                {"series_id": 3279, "lim_outliers":[-1.82,4.18],"lim_jump":0.8,"x_offset":0,"y_offset":0.0275}
+            ],
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": null
+        },
+        {
+            "id": 5,
+            "name": "Bravo - Stage Hydrograph - 1H",
+            "derived": true,
+            "derived_from": {
+                "boundary_id": 4,
+                "x_offset": 0,
+                "y_offset": 1
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31521
+        },
+        {
+            "id": 6,
+            "name": "Sauce - Stage Hydrograph -1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2" : 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.9 
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id":31524
+        }      
+    ]
+}

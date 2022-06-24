@@ -7,6 +7,7 @@ def borde_hidrodelta():
     bordes_config = json.load(open("pydrodelta_config/288_config.json"))
     bordes_set = pydrodelta.analysis.BoundarySet(bordes_config["boundaries"])
     bordes_set.loadData()
+    outliers = bordes_set.boundaries[0].series[0].removeOutliers()
     bordes_set.regularize()
     bordes_set.fillNulls()
     # csv = bordes_set.toCSV()
