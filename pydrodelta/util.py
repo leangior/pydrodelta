@@ -101,11 +101,21 @@ def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, colum
     mapper = {}
     mapper[other_column] = "valor_fillnulls"
     data = data.join(other_data[[other_column,]].rename(mapper,axis=1), how = 'left')
-    data[column] = data[column].fillna(data["valor_fillnulls"].shift(shift_by, axis = 0) - bias)
+    data[column] = data[column].fillna(data["valor_fillnulls"].shift(shift_by, axis = 0) + bias)
     del data["valor_fillnulls"]
     if fill_value is not None:
         data[column] = data[column].fillna(fill_value)
     return data
+
+def applyTimeOffsetToIndex(obs_df,x_offset):
+    original_df = obs_df[["valor",]]
+    del original_df["valor"]
+    obs_df.index = [x + x_offset for x in obs_df.index]
+    obs_df = original_df.join(obs_df,how='outer')
+    obs_df.interpolate(method='time',limit=1,inplace=True)
+    obs_df = original_df.join(obs_df,how='left')
+    return obs_df
+
 
 def removeOutliers(data : pandas.DataFrame,limite_outliers,column="valor"):
     '''

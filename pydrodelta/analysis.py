@@ -1,16 +1,15 @@
-from code import interact
-from xml.etree.ElementInclude import include
 import pydrodelta.a5 as a5
 import pydrodelta.util as util
 from datetime import timedelta 
 import json
+import numpy as np
 
 class BoundarySerie():
     def __init__(self,params):
         self.series_id = params["series_id"]
         self.lim_outliers = params["lim_outliers"]
         self.lim_jump = params["lim_jump"]
-        self.x_offset = params["x_offset"]  # shift_by
+        self.x_offset = util.interval2timedelta(params["x_offset"]) if isinstance(params["x_offset"],dict) else params["x_offset"] # shift_by
         self.y_offset = params["y_offset"]  # bias
     def loadData(self,timestart,timeend):
         self.data = a5.readSerie(self.series_id,timestart,timeend)
@@ -31,9 +30,16 @@ class BoundarySerie():
             return True
         else:
             return False
+    def applyOffset(self):
+        if isinstance(self.x_offset,timedelta):
+            self.obs_df.index = [x + self.x_offset for x in self.obs_df.index]
+        elif self.x_offset != 0:
+            self.obs["valor"] = self.obs["valor"].shift(self.x_offset, axis = 0) 
+        if self.y_offset != 0:
+            self.obs_df["valor"] = self.obs_df["valor"] + self.y_offset
     def regularize(self,timestart,timeend,time_interval,time_offset):
         self.obs_df = util.serieRegular(self.obs_df,time_interval,timestart,timeend,time_offset)
-    def fillNulls(self,other_obs_df,fill_value=None,x_offset=None,y_offset=None):
+    def fillNulls(self,other_obs_df,fill_value=None,x_offset=0,y_offset=0):
         self.obs_df = util.serieFillNulls(self.obs_df,other_obs_df,fill_value=fill_value,shift_by=x_offset,bias=y_offset)
     def toCSV(self,include_series_id=False):
         if include_series_id:
@@ -62,16 +68,29 @@ class DerivedBoundarySerie:
             self.interpolated_from = InterpolatedOrigin(params["interpolated_from"],boundary_set)
         else:
             self.interpolated_from = None
-    def derive(self):
+    def derive(self,keep_index=True):
         if self.derived_from is not None:
+            print("Deriving %i from %s" % (self.series_id, self.derived_from.origin.name))
             self.obs_df = self.derived_from.origin.series[0].obs_df[["valor",]]
-            self.obs_df["valor"] = self.obs_df["valor"].shift(self.derived_from.x_offset, axis = 0) - self.derived_from.y_offset
+            if isinstance(self.derived_from.x_offset,timedelta):
+                self.obs_df["valor"] = self.obs_df["valor"] + self.derived_from.y_offset
+                self.obs_df.index = [x + self.derived_from.x_offset for x in self.obs_df.index]
+            else:
+                self.obs_df["valor"] = self.obs_df["valor"].shift(self.derived_from.x_offset, axis = 0) + self.derived_from.y_offset
         elif self.interpolated_from is not None:
+            print("Interpolating %i from %s and %s" % (self.series_id, self.interpolated_from.origin_1.name, self.interpolated_from.origin_2.name))
             self.obs_df = self.interpolated_from.origin_1.series[0].obs_df[["valor",]]
-            self.obs_df["valor"].shift(self.interpolated_from.x_offset, axis = 0) - self.interpolated_from.y_offset
             self.obs_df = self.obs_df.join(self.interpolated_from.origin_2.series[0].obs_df[["valor",]],how='left',rsuffix="_other")
             self.obs_df["valor"] = self.obs_df["valor"] * (1 - self.interpolated_from.interpolation_coefficient) + self.obs_df["valor_other"] * self.interpolated_from.interpolation_coefficient
             del self.obs_df["valor_other"]
+            if isinstance(self.interpolated_from.x_offset,timedelta):
+                if keep_index:
+                    self.obs_df = util.applyTimeOffsetToIndex(self.obs_df,self.interpolated_from.x_offset)
+                else:
+                    self.obs_df.index = [x + self.interpolated_from.x_offset for x in self.obs_df.index]
+            else:
+                self.obs_df["valor"] = self.obs_df["valor"].shift(self.interpolated_from.x_offset, axis = 0)    
+            
     def toCSV(self,include_series_id=False):
         if include_series_id:
             obs_df = self.obs_df
@@ -116,8 +135,21 @@ class Boundary:
         return obs_df.to_dict(orient="records")
     def uploadData(self):
         obs_list = self.toList()
-        obs_created = a5.createObservaciones(obs_list,series_id=self.output_series_id)
-        return obs_created
+        if self.output_series_id is not None:
+            obs_created = a5.createObservaciones(obs_list,series_id=self.output_series_id)
+            return obs_created
+        else:
+            print("Warning: missing output_series_id for boundary #%i, skipping upload" % self.id)
+            return []
+    def pivotData(self):
+        df = self.series[0].obs_df[["valor",]]
+        for serie in self.series:
+            if len(serie.obs_df):
+                df = df.join(serie.obs_df[["valor",]],how='outer',rsuffix="_%s" % serie.series_id,sort=True)
+        del df["valor"]
+        return df
+
+
 
 class observedBoundary(Boundary):
     def __init__(self,params,timestart,timeend):
@@ -142,6 +174,9 @@ class observedBoundary(Boundary):
             found_jumps_ = serie.detectJumps()
             found_jumps = found_jumps_ if found_jumps_ else found_jumps
         return found_jumps
+    def applyOffset(self):
+        for serie in self.series:
+            serie.applyOffset()
     def regularize(self):
         for serie in self.series:
             serie.regularize(self.timestart,self.timeend,self.time_interval,self.time_offset)
@@ -151,7 +186,7 @@ class observedBoundary(Boundary):
             for serie in self.series[1:]:
                 # if last, fills  
                 fill_value = self.fill_value if i == len(self.series) else None 
-                self.series[0].fillNulls(serie.obs_df,fill_value,serie.x_offset,serie.y_offset)
+                self.series[0].fillNulls(serie.obs_df,fill_value) # ,serie.x_offset,serie.y_offset)
                 i = i + 1
         else:
             print("Warning: no other series to fill nulls with")
@@ -182,7 +217,7 @@ class DerivedOrigin:
 class InterpolatedOrigin:
     def __init__(self,params,boundary_set=None):
         self.boundary_id_1 = params["boundary_id_1"]
-        self.boundary_id_2 = params["boundary_id_1"]
+        self.boundary_id_2 = params["boundary_id_2"]
         self.x_offset = params["x_offset"]
         self.y_offset = params["y_offset"]
         self.interpolation_coefficient = params["interpolation_coefficient"]
@@ -222,6 +257,7 @@ class BoundarySet():
         self.loadData()
         self.removeOutliers()
         self.detectJumps()
+        self.applyOffset()
         self.regularize()
         self.fillNulls()
         self.derive()
@@ -243,6 +279,10 @@ class BoundarySet():
                 found_jumps_ = boundary.detectJumps()
                 found_jumps = found_jumps_ if found_jumps_ else found_jumps
         return found_jumps
+    def applyOffset(self):
+        for boundary in self.boundaries:
+            if isinstance(boundary,observedBoundary):
+                boundary.applyOffset()
     def regularize(self):
         for boundary in self.boundaries:
             if isinstance(boundary,observedBoundary):
@@ -255,22 +295,33 @@ class BoundarySet():
         for boundary in self.boundaries:
             if isinstance(boundary,derivedBoundary):
                 boundary.derive()
-    def toCSV(self):
+    def toCSV(self,pivot=False):
+        if pivot:
+            df = self.pivotData()
+            df["timestart"] = [x.isoformat() for x in df.index]
+            df.reset_index
+            return df.to_csv(index=False)    
         header = ",".join(["timestart","valor","series_id"])
         return header + "\n" + "\n".join([boundary.toCSV(True,False) for boundary in self.boundaries])
-    def toList(self):
+    def toList(self,pivot=False):
+        if pivot:
+            df = self.pivotData()
+            df["timestart"] = [x.isoformat() for x in df.index]
+            df.reset_index
+            df["timeend"] = df["timestart"]
+            return df.to_dict(orient="records")
         obs_list = []
         for boundary in self.boundaries:
             obs_list.extend(boundary.toList(True))
         return obs_list
-    def saveData(self,file : str,format="csv"):
+    def saveData(self,file : str,format="csv",pivot=False):
         f = open(file,"w")
         if format == "json":
-            obs_json = json.dumps(self.toList())
+            obs_json = json.dumps(self.toList(pivot),ensure_ascii=False)
             f.write(obs_json)
             f.close()
             return
-        f.write(self.toCSV())
+        f.write(self.toCSV(pivot))
         f.close
         return
     def uploadData(self):
@@ -279,6 +330,14 @@ class BoundarySet():
             obs_created = boundary.uploadData()
             created.extend(obs_created)
         return created
+    def pivotData(self):
+        df = self.boundaries[0].series[0].obs_df[["valor",]]
+        for boundary in self.boundaries:
+            if len(boundary.series) and len(boundary.series[0].obs_df):
+                df = df.join(boundary.series[0].obs_df[["valor",]][boundary.series[0].obs_df.valor.notnull()],how='outer',rsuffix="_%s" % boundary.name,sort=True)
+        del df["valor"]
+        df = df.replace({np.NaN:None})
+        return df
     # def __iter__(self):
     #     return BordeSetIterator(self)
 

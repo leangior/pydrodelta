@@ -6,11 +6,11 @@
             "id": 1,
             "name": "San Fernando - Stage Hydrograph - 1H",
             "series":[
-                {"series_id": 85, "lim_outliers":[-3.03,5.0],"lim_jump":0.835,"x_offset":0,"y_offset":0},
-                {"series_id": 52, "lim_outliers":[-2.25,4.62],"lim_jump":0.958,"x_offset":0,"y_offset":0},
-                {"series_id": 3279, "lim_outliers":[-1.82,4.18],"lim_jump":0.8,"x_offset":0,"y_offset":0},
-                {"series_id": 3280, "lim_outliers":[-1.7,3.42],"lim_jump":0.4,"x_offset":0,"y_offset":0},
-                {"series_id": 2111, "lim_outliers":[-2.01,2.66],"lim_jump":0.5,"x_offset":0,"y_offset":0}
+                {"series_id": 52, "lim_outliers":[-2.25,4.62],"lim_jump":0.958,"x_offset":0,"y_offset":-0.53, "comment": "san fernando Hinst SHN"},
+                {"series_id": 85, "lim_outliers":[-3.03,5.0],"lim_jump":0.835,"x_offset":0,"y_offset":-0.35, "comment": "buenos aires Hinst SHN"},
+                {"series_id": 3279, "lim_outliers":[-1.82,4.18],"lim_jump":0.8,"x_offset":0,"y_offset":-1.81, "comment": "carapachay Hinst ina-delta"},
+                {"series_id": 3280, "lim_outliers":[-1.7,3.42],"lim_jump":0.4,"x_offset":{"hours":-2},"y_offset":-0.44, "comment": "nueva palmira Hinst CARU"},
+                {"series_id": 2111, "lim_outliers":[-2.01,2.66],"lim_jump":0.5,"x_offset":0,"y_offset":0.22, "comment": "borches Hinst ina-delta"}
                 ],
             "time_interval": {"hours":1},
             "output_series_id": 31537
@@ -43,7 +43,8 @@
             "id": 4,
             "name": "Nueva Palmira - Stage Hydrograph -1H",
             "series": [
-                {"series_id": 3279, "lim_outliers":[-1.82,4.18],"lim_jump":0.8,"x_offset":0,"y_offset":0.0275}
+                {"series_id": 3280, "lim_outliers":[-1.7,3.42],"lim_jump":0.4,"x_offset":0,"y_offset":0.0275},
+                {"series_id": 2111, "lim_outliers":[-2.01,2.66],"lim_jump":0.5,"x_offset":0,"y_offset":0}
             ],
             "time_interval": {"hours":1},
             "time_offset": null,
@@ -56,7 +57,7 @@
             "derived_from": {
                 "boundary_id": 4,
                 "x_offset": 0,
-                "y_offset": 1
+                "y_offset": 0
             },
             "time_interval": {"hours":1},
             "time_offset": null,
@@ -64,7 +65,7 @@
         },
         {
             "id": 6,
-            "name": "Sauce - Stage Hydrograph -1H",
+            "name": "Sauce - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
                 "boundary_id_1": 1,
@@ -76,6 +77,147 @@
             "time_interval": {"hours":1},
             "time_offset": null,
             "output_series_id":31524
-        }      
+        },
+        {
+            "id": 7,
+            "name": "BarcaGrande - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2" : 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.493 
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31523
+        },
+        {
+            "id": 8,
+            "name": "Mini - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2" : 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.388 
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31522
+        },
+        {
+            "id": 9,
+            "name": "LaBarquita - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2" : 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.427 
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31526
+        },
+        {
+            "id": 10,
+            "name": "CanaldelEste - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2" : 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.077 
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31527
+        },
+        {
+            "id": 11,
+            "name": "Lujan Desembocadura - Stage Hydrograph - 1H",
+            "derived": true,
+            "derived_from": {
+                "boundary_id": 1,
+                "x_offset": 0,
+                "y_offset": 0
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31528
+        },
+        {
+            "id": 12,
+            "name": "SanAntonio - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2": 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.024
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31529
+        },
+        {
+            "id": 13,
+            "name": "Gutierrez - Stage Hydrograph - 1H",
+            "derived": true,
+            "derived_from": {
+                "boundary_id": 4,
+                "x_offset": 0,
+                "y_offset": 0
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31532
+        },{
+            "id": 14,
+            "name": "Guazu - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2": 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.800
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31533
+        },
+        {
+            "id": 15,
+            "name":"Ibicuy - Flow Hydrograph - 1D",
+            "series":[
+                {"series_id": 18611, "lim_outliers":[-0.0001,6000.0],"lim_jump":6000.0,"x_offset":0,"y_offset":0, "comment": "GUALEGUAY @ RTALA QmedDiaria SAT2 (RHN)"},
+                {"series_id": 7806, "lim_outliers":[-0.0001,6000.0],"lim_jump":6000.0,"x_offset":0,"y_offset":0, "comment": "GUALEGUAY @ RTALA Qinst SAT2 (RHN)"}  
+                ],
+            "time_interval": {"days":1},
+            "time_offset": null,
+            "fill_value": 50,
+            "output_series_id": 31534
+        },{
+            "id": 16,
+            "name": "Correntoso - Stage Hydrograph - 1H",
+            "derived": true,
+            "interpolated_from": {
+                "boundary_id_1": 1,
+                "boundary_id_2": 4,
+                "x_offset": 0,
+                "y_offset": 0,
+                "interpolation_coefficient": 0.598
+            },
+            "time_interval": {"hours":1},
+            "time_offset": null,
+            "output_series_id": 31535
+        }
     ]
 }
