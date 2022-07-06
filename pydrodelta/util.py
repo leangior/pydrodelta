@@ -149,3 +149,6 @@ def detectJumps(data : pandas.DataFrame,lim_jump,column="valor"):
     del data[coldiff]
     return df_saltos
 
+def adjustSeries(sim,truth,method="lfit"):
+    # TODO
+    return sim

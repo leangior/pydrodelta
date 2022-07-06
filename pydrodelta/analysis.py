@@ -3,6 +3,7 @@ import pydrodelta.util as util
 from datetime import timedelta 
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 
 class BoundarySerie():
     def __init__(self,params):
@@ -11,13 +12,22 @@ class BoundarySerie():
         self.lim_jump = params["lim_jump"]
         self.x_offset = util.interval2timedelta(params["x_offset"]) if isinstance(params["x_offset"],dict) else params["x_offset"] # shift_by
         self.y_offset = params["y_offset"]  # bias
+        self.cal_id = params["cal_id"] if "cal_id" in params else None
     def loadData(self,timestart,timeend):
-        self.data = a5.readSerie(self.series_id,timestart,timeend)
-        if len(self.data["observaciones"]):
-            self.obs_df = a5.observacionesListToDataFrame(self.data["observaciones"])
+        if self.cal_id is not None:
+            self.data = a5.readSerieProno(self.series_id,self.cal_id,timestart,timeend)
+            if len(self.data["pronosticos"]):
+                self.obs_df = a5.observacionesListToDataFrame(self.data["pronosticos"])
+            else:
+                print("Warning: no data found for series_id=%i, cal_id=%i" % (self.series_id, self.cal_id))
+                self.obs_df = a5.createEmptyObsDataFrame()
         else:
-            print("Warning: no data found for series_id=%i" % self.series_id)
-            self.obs_df = a5.createEmptyObsDataFrame()
+            self.data = a5.readSerie(self.series_id,timestart,timeend)
+            if len(self.data["observaciones"]):
+                self.obs_df = a5.observacionesListToDataFrame(self.data["observaciones"])
+            else:
+                print("Warning: no data found for series_id=%i" % self.series_id)
+                self.obs_df = a5.createEmptyObsDataFrame()
     def removeOutliers(self):
         self.outliers_df = util.removeOutliers(self.obs_df,self.lim_outliers)
         if len(self.outliers_df):
@@ -109,15 +119,22 @@ class DerivedBoundarySerie:
 
 class Boundary:
     def __init__(self,params,timestart=None,timeend=None):
+        if "id" not in params:
+            raise ValueError("id of boundary must be defined")
         self.id = params["id"]
+        if "name" not in params:
+            raise ValueError("name of boundary must be defined")
         self.name = params["name"]
         self.timestart = timestart
         self.timeend = timeend
+        if "time_interval" not in params:
+            raise ValueError("time_interval of boundary must be defined")
         self.time_interval = util.interval2timedelta(params["time_interval"])
         self.time_offset = params["time_offset"] if "time_offset" in params else None
         self.fill_value = params["fill_value"] if "fill_value" in params else None
         self.output_series_id = params["output_series_id"] if "output_series_id" in params else None
         self.time_support = util.interval2timedelta(params["time_support"]) if "time_support" in params else None 
+        self.adjust_from = params["adjust_from"] if "adjust_from" in params else None
     def toCSV(self,include_series_id=False,include_header=True):
         if include_series_id:
             obs_df = self.series[0].obs_df
@@ -133,6 +150,11 @@ class Boundary:
         if include_series_id:
             obs_df["series_id"] = self.output_series_id
         return obs_df.to_dict(orient="records")
+    def adjust(self):
+        truth = self.series[self.adjust_from["truth"]]
+        sim = self.series[self.adjust_from["sim"]]
+        self.series[self.adjust_from["sim"]].original_df = self.series[self.adjust_from["sim"]].obs_df.copy(deep=True)
+        self.series[self.adjust_from["sim"]].obs_df = util.adjustSeries(sim,truth,method=self.adjust_from["method"])
     def uploadData(self):
         obs_list = self.toList()
         if self.output_series_id is not None:
@@ -148,6 +170,29 @@ class Boundary:
                 df = df.join(serie.obs_df[["valor",]],how='outer',rsuffix="_%s" % serie.series_id,sort=True)
         del df["valor"]
         return df
+    def seriesToDataFrame(self,pivot=False):
+        if pivot:
+            df = self.pivotData()
+        else:
+            df = self.series[0].obs_df[["valor",]]
+            df["series_id"] = self.series[0].series_id
+            df["timestart"] = df.index
+            df.reset_index()
+            for i in range(1,len(self.series)-1):
+                if len(self.series[i].obs_df):
+                    other_df = self.series[i].obs_df[["valor",]]
+                    other_df["series_id"] = self.series[i].series_id
+                    other_df["timestart"] = other_df.index
+                    other_df.reset_index
+                    df = df.append(other_df,ignore_index=True)
+        return df
+    def saveSeries(self,output,format="csv",pivot=False):
+        df = self.seriesToDataFrame(pivot=pivot)
+        if format=="csv":
+            return df.to_csv(output)
+        else:
+            return json.dump(df.to_dict(orient="records"),output)
+
 
 
 
@@ -261,6 +306,7 @@ class BoundarySet():
         self.regularize()
         self.fillNulls()
         self.derive()
+        self.adjust()
     def loadData(self):
         for boundary in self.boundaries:
             if isinstance(boundary,observedBoundary):
@@ -295,6 +341,10 @@ class BoundarySet():
         for boundary in self.boundaries:
             if isinstance(boundary,derivedBoundary):
                 boundary.derive()
+    def adjust(self):
+        for boundary in self.boundaries:
+            if boundary.adjust_from is not None:
+                boundary.adjust()
     def toCSV(self,pivot=False):
         if pivot:
             df = self.pivotData()
@@ -338,6 +388,12 @@ class BoundarySet():
         del df["valor"]
         df = df.replace({np.NaN:None})
         return df
+    def plotBoundaries(self):
+        for boundary in self.boundaries:
+            if hasattr(boundary.series[0],"obs_df"):
+                df = boundary.series[0].obs_df.reset_index() # .plot(y="valor")
+                df.plot(kind="scatter",x="timestart",y="valor",title=boundary.name)
+        plt.show()
     # def __iter__(self):
     #     return BordeSetIterator(self)
 

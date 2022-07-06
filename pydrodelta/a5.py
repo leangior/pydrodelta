@@ -1255,9 +1255,10 @@ def observacionesListToDataFrame(data: list):
     if len(data) == 0:
         raise Exception("empty list")
     data = pandas.DataFrame.from_dict(data)
+    # data["valor"] = data["valor"].astype(float)
     data.index = data["timestart"].apply(util.tryParseAndLocalizeDate)
     data.sort_index(inplace=True)
-    return data[["valor",]]
+    return data[["valor",]].astype(float)
 
 def createEmptyObsDataFrame():
     data = pandas.DataFrame({
@@ -1292,7 +1293,45 @@ def readVar(var_id,use_proxy=False):
     json_response = response.json()
     return json_response
 
-
+def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False):
+    params = {}
+    if timestart is not None and timeend is not None:
+        params = {
+            "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
+            "timeend": timeend if isinstance(timestart,str) else timeend.isoformat(),
+            "series_id": series_id
+        }
+    response = requests.get("%s/sim/calibrados/%i/corridas/last" % (config["api"]["url"], cal_id),
+        params = params,
+        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
+        proxies = config["proxy_dict"] if use_proxy else None
+    )
+    if response.status_code != 200:
+        raise Exception("request failed: %s" % response.text)
+    json_response = response.json()
+    if "series" not in json_response:
+        print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
+        return {
+            "series_id": series_id,
+            "pronosticos": []
+        }
+    if not len(json_response["series"]):
+        print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
+        return {
+            "series_id": series_id,
+            "pronosticos": []
+        }
+    if "pronosticos" not in json_response["series"][0]:
+        print("Warning: pronosticos from series %i from cal_id %i not found" % (series_id,cal_id))
+        return {
+            "series_id": series_id,
+            "pronosticos": []
+        }
+    if not len(json_response["series"][0]["pronosticos"]):
+        print("Warning: pronosticos from series %i from cal_id %i is empty" % (series_id,cal_id))
+        return json_response["series"][0]
+    json_response["series"][0]["pronosticos"] = [ { "timestart": x[0], "valor": x[2]} for x in json_response["series"][0] ["pronosticos"]] # "series_id": series_id, "timeend": x[1] "qualifier":x[3]
+    return json_response["series"][0]
 
 ## EJEMPLO
 '''

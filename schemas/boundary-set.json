@@ -1,0 +1,175 @@
+{
+    "$id": "https://alerta.ina.gob.ar/schemas/BoundarySet.json",
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "BoundarySet",
+    "type": "object",
+    "properties": {
+        "timestart": {
+            "type": "string"
+        },
+        "timeend": {
+            "type": "string"
+        },
+        "boundaries": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/Boundary"
+            }
+        }
+    },
+    "$defs": {
+        "Boundary": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/BoundarySerie"
+                    }
+                },
+                "time_interval": {
+                    "$ref": "#/$defs/TimeInterval"
+                },
+                "output_series_id": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "derived": {
+                    "type": "boolean"
+                },
+                "derived_from": {
+                    "title": "derived-from",
+                    "type": "object",
+                    "properties": {
+                        "boundary_id": {
+                            "type": "number"
+                        },
+                        "x_offset": {
+                            "$ref": "#/$defs/TimeInterval"
+                        },
+                        "y_offset": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "interpolated_from": {
+                    "title": "interpolated-from",
+                    "type": "object",
+                    "properties": {
+                        "boundary_id_1": {
+                            "type": "number"
+                        },
+                        "boundary_id_2": {
+                            "type": "number"
+                        },
+                        "x_offset": {
+                            "$ref": "#/$defs/TimeInterval"
+                        },
+                        "y_offset": {
+                            "type": "number"
+                        },
+                        "interpolation_coefficient": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "adjust_using": {
+                    "type": "object",
+                    "properties": {
+                        "truth": {
+                            "type": "number",
+                            "description": "índice de la serie observada, contra la cual se calcularán los errores"
+                        },
+                        "sim": {
+                            "type": "number",
+                            "description": "índice de la serie simulada, la que se ajustará en función del error"
+                        },
+                        "method": {
+                            "type": "string",
+                            "description": "método de ajuste (lfit,..)",
+                            "enum": ["lfit"]
+                        }
+                    }
+                }
+            }
+        },
+        "BoundarySerie": {
+            "type": "object",
+            "properties": {
+                "series_id": {
+                    "type": "number"
+                },
+                "lim_outliers": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 2
+                },
+                "lim_jump": {
+                    "type": "number"
+                },
+                "x_offset": {
+                    "$ref": "#/$defs/TimeInterval"
+                },
+                "y_offset": {
+                    "type": "number"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "cal_id": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "id de calibrado, para utilizar salida de pronóstico"
+                }
+            }
+        },
+        "TimeInterval": {
+            "anyOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "hours": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "minutes": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "seconds": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "milliseconds": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "months": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "days": {
+                            "type": "number",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

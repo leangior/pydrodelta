@@ -1,0 +1,45 @@
+{
+    "$schema": "../schemas/boundary-set.json",
+    "timestart": "2022-06-01T03:00:00.000Z",
+    "timeend": "2022-07-10T03:00:00.000Z",
+    "boundaries": [
+        {
+            "id": 1,
+            "name": "Boca río Luján - Stage Hydrograph - 1H",
+            "time_interval": {
+                "hours": 1
+            },
+            "series": [
+                {
+                    "series_id": 6066,
+                    "lim_outliers": [
+                        -2.25,
+                        4.62
+                    ],
+                    "lim_jump": 0.958,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "comment": "Boca río Luján H prono marea meteo + astro",
+                    "cal_id": 308
+                },
+                {
+                    "series_id": 52,
+                    "lim_outliers": [
+                        -2.25,
+                        4.62
+                    ],
+                    "lim_jump": 0.958,
+                    "x_offset": 0,
+                    "y_offset": -0.53,
+                    "comment": "san fernando Hinst SHN"
+                }
+            ],
+            "adjust_using": {
+                "truth": 1,
+                "sim": 0,
+                "method": "lfit"
+            }
+        }
+    ]
+
+}
