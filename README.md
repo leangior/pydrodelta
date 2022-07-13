@@ -11,6 +11,10 @@ módulo generación de análisis de series temporales
 - guarda observaciones en archivo csv o json .saveData()
 - guarda observaciones en a5 .uploadData() 
 
+### Description
+
+La aplicación lee un archivo de entrada .json que define con qué armar las series, de acuerdo al esquema definido acá: https://github.com/jbianchi81/pydrodelta/blob/main/schemas/topology.json . Por ejemplo, para el modelo Hidrodelta el archivo de entrada es así: https://github.com/jbianchi81/pydrodelta/blob/main/pydrodelta_config/288_bordes_curados.json . Básicamente, el esquema define una topología que contiene 1..n nodos, cada uno de los cuales 1..n series. También se pueden definir nodos derivados allí donde no hay observaciones, copiando o interpolando otros nodos. Luego de descargar de la base de datos, curar y regularizar las series, los datos faltantes de la primera serie se completan con los de las subsiguientes, para dar una serie resultante por nodo. Luego se calculan los nodos derivados y finalmente se exportan las series a .csv, .json y/o se cargan a la base de datos.
+
 ### use examples
 
 #### a5 api series to/from dataframe
