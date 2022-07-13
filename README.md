@@ -1,11 +1,11 @@
 ## pydrodelta
 
-módulo generación de condiciones de borde
+módulo generación de análisis de series temporales
 
-- se definen las clases boundarySerie, boundary y boundarySet
-- se define un esquema json para la configuración de las condiciones de borde (boundarySet)
-- se instancia una clase boundarySet usando el archivo json de configuración y:
-- lee series de entrada de a5 boundarySet.loadData()
+- se definen las clases NodeSerie, Node y Topology
+- se define un esquema json para la configuración de la topología (schemas/topology.json)
+- se instancia una clase Topology usando el archivo json de configuración y:
+- lee series de entrada de a5 topology.loadData()
 - regulariza las series .regularize()
 - rellena nulos .fillNulls()
 - guarda observaciones en archivo csv o json .saveData()
@@ -28,16 +28,29 @@ módulo generación de condiciones de borde
     # sube observaciones a la api a5
     upserted = a5.createObservaciones(obs_df,series_id=serie["id"])
 
-#### boundary condition generation
+#### python api analysis de series temporales
 
     import pydrodelta.analysis
-    bordes_config = json.load(open("pydrodelta_config/288_config.json"))
-    bordes_set = pydrodelta.analysis.BoundarySet(bordes_config["boundaries"])
-    bordes_set.loadData()
-    bordes_set.regularize()
-    bordes_set.fillNulls()
-    # csv = bordes_set.toCSV()
-    bordes_set.saveData("bordes_288.csv")
-    bordes_set.saveData("bordes_288.json","json")
-    bordes_set.uploadData()
+    t_config = json.load(open("pydrodelta_config/288_bordes_curados.json"))
+    topology = pydrodelta.analysis.Topology(t_config])
+    topology.loadData()
+    topology.regularize()
+    topology.fillNulls()
+    # csv = topology.toCSV()
+    topology.saveData("bordes_288.csv",pivot=True)
+    topology.saveData("bordes_288.json","json")
+    topology.uploadData()
 
+#### CLI
+
+    python3 cli.py pydrodelta_config/288_bordes_curados.json -u -p -c bordes_288.csv
+
+#### References
+
+Instituto Nacional del Agua
+
+Subgerencia de Sistemas de Información y Alerta Hidrológico
+
+Argentina
+
+2022
