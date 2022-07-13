@@ -1,4 +1,7 @@
 {
+    "log": {
+        "filename": "log/analysis.log"
+    },
     "api": {
         "username":"",
         "password":"",

@@ -1,0 +1,275 @@
+{
+    "$id": "https://alerta.ina.gob.ar/schemas/topology.json",
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Topology",
+    "type": "object",
+    "properties": {
+        "timestart": {
+            "description": "start date of observations period (datetime or timedelta relative to now)",
+            "$ref": "#/$defs/DateOrInterval"
+        },
+        "timeend": {
+            "description": "end date of observations period (datetime or timedelta relative to now)",
+            "$ref": "#/$defs/DateOrInterval"
+        },
+        "forecast_timeend": {
+            "description": "forecast horizon (datetime or timedelta relative to timeend)",
+            "$ref": "#/$defs/DateOrInterval"
+        },
+        "nodes": {
+            "description": "information nodes of the topology",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/Node"
+            }
+        }
+    },
+    "$defs": {
+        "Node": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "geometry": {
+                    "$ref": "#/$defs/Geometry"
+                },
+                "series": {
+                    "description": "Input timeseries for the node in order of priority",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/NodeSerie"
+                    }
+                },
+                "series_prono": {
+                    "description": "Input timeseries for the node, forecasted",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/NodeSerie"
+                    }
+                },
+                "time_interval": {
+                    "$ref": "#/$defs/TimeInterval"
+                },
+                "output_series_id": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "derived": {
+                    "type": "boolean"
+                },
+                "derived_from": {
+                    "title": "derived-from",
+                    "type": "object",
+                    "properties": {
+                        "node_id": {
+                            "type": "number"
+                        },
+                        "x_offset": {
+                            "$ref": "#/$defs/TimeInterval"
+                        },
+                        "y_offset": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "interpolated_from": {
+                    "title": "interpolated-from",
+                    "type": "object",
+                    "properties": {
+                        "node_id_1": {
+                            "type": "number"
+                        },
+                        "node_id_2": {
+                            "type": "number"
+                        },
+                        "x_offset": {
+                            "$ref": "#/$defs/TimeInterval"
+                        },
+                        "y_offset": {
+                            "type": "number"
+                        },
+                        "interpolation_coefficient": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "adjust_from": {
+                    "type": "object",
+                    "properties": {
+                        "truth": {
+                            "type": "number",
+                            "description": "índice de la serie observada, contra la cual se calcularán los errores"
+                        },
+                        "sim": {
+                            "type": "number",
+                            "description": "índice de la serie simulada, la que se ajustará en función del error"
+                        },
+                        "method": {
+                            "type": "string",
+                            "description": "método de ajuste (lfit,..)",
+                            "enum": ["lfit"]
+                        }
+                    }
+                },
+                "linear_combination": {
+                    "type": "object",
+                    "properties": {
+                        "intercept": {
+                            "type": "number"
+                        },
+                        "coefficients": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "NodeSerie": {
+            "type": "object",
+            "properties": {
+                "series_id": {
+                    "type": "number"
+                },
+                "lim_outliers": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "minItems": 2
+                },
+                "lim_jump": {
+                    "type": "number"
+                },
+                "x_offset": {
+                    "$ref": "#/$defs/TimeInterval"
+                },
+                "y_offset": {
+                    "type": "number"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "cal_id": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "id de calibrado, para utilizar salida de pronóstico"
+                },
+                "moving_average": {
+                    "$ref": "#/$defs/TimeInterval" 
+                }
+            }
+        },
+        "TimeInterval": {
+            "anyOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "hours": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "minutes": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "seconds": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "milliseconds": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "months": {
+                            "type": "number",
+                            "required": false
+                        },
+                        "days": {
+                            "type": "number",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "DateOrInterval": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/$defs/TimeInterval"
+                }
+            ]
+        },
+        "Geometry": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "description": "tipo de geometría",
+                    "type": "string",
+                    "enum": [ "Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", "GeometryCollection" ]
+                },
+                "coordinates": {
+                    "description": "coordenadas",
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/Position"
+                        },
+                        {
+                            "$ref": "#/$defs/LineString"
+                        },
+                        {
+                            "$ref": "#/$defs/Polygon"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiPolygon"
+                        }
+                    ]
+                }
+            },
+            "required": [ "type", "coordinates"]
+        },
+        "Position": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 3
+        },
+        "LineString": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/Position"
+            },
+            "minItems": 2
+        },
+        "Polygon": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/LineString"
+            }
+        },
+        "MultiPolygon": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/Polygon"
+            }
+        }
+    }
+}

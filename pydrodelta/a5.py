@@ -1223,7 +1223,7 @@ def readSerie(series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=Fal
     if timestart is not None and timeend is not None:
         params = {
             "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
-            "timeend": timeend if isinstance(timestart,str) else timeend.isoformat()
+            "timeend": timeend if isinstance(timeend,str) else timeend.isoformat()
         }
     response = requests.get("%s/obs/%s/series/%i" % (config["api"]["url"], tipo, series_id),
         params = params,
@@ -1293,15 +1293,42 @@ def readVar(var_id,use_proxy=False):
     json_response = response.json()
     return json_response
 
-def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False):
+def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,cor_id=None,forecast_date=None):
+    """
+    Reads prono serie from a5 API
+    if forecast_date is not None, cor_id is overwritten by first corridas match
+    returns Corridas object { series_id: int, cor_id: int, forecast_date: str, pronosticos: [{timestart:str,valor:float},...]}
+    """
     params = {}
+    if forecast_date is not None:
+        corridas_response = requests.get("%s/sim/calibrados/%i/corridas" % (config["api"]["url"], cal_id),
+            params = {
+                "forecast_date": forecast_date if isinstance(forecast_date,str) else forecast_date.isoformat()
+            },
+            headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
+            proxies = config["proxy_dict"] if use_proxy else None
+        )
+        if corridas_response.status_code != 200:
+            raise Exception("request failed: %s" % corridas_response.text)
+        corridas = corridas_response.json()
+        if len(corridas):
+            cor_id = corridas[0]["cor_id"]
+        else:
+            print("Warning: series %i from cal_id %i at forecast_date %s not found" % (series_id,cal_id,forecast_date))
+            return {
+            "series_id": series_id,
+            "pronosticos": []
+        }
     if timestart is not None and timeend is not None:
         params = {
             "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
             "timeend": timeend if isinstance(timestart,str) else timeend.isoformat(),
             "series_id": series_id
         }
-    response = requests.get("%s/sim/calibrados/%i/corridas/last" % (config["api"]["url"], cal_id),
+    url = "%s/sim/calibrados/%i/corridas/last" % (config["api"]["url"], cal_id)
+    if cor_id is not None:
+        url = "%s/sim/calibrados/%i/corridas/%i" % (config["api"]["url"], cal_id, cor_id)
+    response = requests.get(url,
         params = params,
         headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
         proxies = config["proxy_dict"] if use_proxy else None
