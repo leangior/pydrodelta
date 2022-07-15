@@ -117,7 +117,7 @@ def serieRegular(data : pandas.DataFrame, timeInterval : timedelta, timestart=No
 def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, column : str="valor", other_column : str="valor", fill_value : float=None, shift_by : int=0, bias : float=0, extend=False):
     """
     rellena nulos de data con valores de other_data donde coincide el index. Opcionalmente aplica traslado rígido en x (shift_by: n registros) y en y (bias: float)
-    
+
     si extend=True el índice del dataframe resultante será la unión de los índices de data y other_data (caso contrario será igual al índice de data)
     """
     mapper = {}
@@ -239,7 +239,7 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     mse = mean_squared_error(Y_test, Y_predictions)
     # The coefficient of determination: 1 is perfect prediction
     coefDet = r2_score(Y_test, Y_predictions)
-    logging.debug('Coefficients B0: %.5f, coefficients: %s, Mean squared error: %.5f, r2_score: %.5f' % (lr.intercept_, ",".join(lr.coef_), mse, coefDet))
+    logging.debug('Coefficients B0: %.5f, coefficients: %.5f, Mean squared error: %.5f, r2_score: %.5f' % (lr.intercept_, lr.coef_, mse, coefDet))
     train['Error_pred'] =  train['Y_predictions']  - train[var_obj]
     quant_Err = train['Error_pred'].quantile([.001,.05,.95,.999])
     

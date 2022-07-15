@@ -189,10 +189,12 @@ class Node:
         except ValueError:
             logging.warning("No observations found to estimate coefficients. Skipping adjust")
             return
-        self.series[self.adjust_from["sim"]].data["valor"] = adj_serie
+        # self.series[self.adjust_from["sim"]].data["valor"] = adj_serie
+        self.data.loc[:,"valor"] = adj_serie
     def apply_linear_combination(self,plot=True,series_index=0):
         self.series[series_index].original_data = self.series[series_index].data.copy(deep=True)
-        self.series[series_index].data.loc[:,"valor"] = util.linearCombination(self.pivotData(),self.linear_combination,plot=plot)
+        #self.series[series_index].data.loc[:,"valor"] = util.linearCombination(self.pivotData(),self.linear_combination,plot=plot)
+        self.data.loc[:,"valor"] = util.linearCombination(self.pivotData(),self.linear_combination,plot=plot)
     def applyMovingAverage(self):
         for serie in self.series:
             if isinstance(serie,NodeSerie) and serie.moving_average is not None:
@@ -281,7 +283,7 @@ class Node:
 
 
 
-class observedNode(Node):
+class ObservedNode(Node):
     def __init__(self,params,timestart,timeend,forecast_timeend):
         super().__init__(params,timestart,timeend,forecast_timeend)
         self.series = [NodeSerie(x) for x in params["series"]]
@@ -418,9 +420,9 @@ class Topology():
         self.forecast_timeend = util.tryParseAndLocalizeDate(params["forecast_timeend"]) if "forecast_timeend" in params else None
         self.nodes = []
         for x in params["nodes"]:
-            self.nodes.append(derivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend) if "derived" in x and x["derived"] == True else observedNode(x,self.timestart,self.timeend,self.forecast_timeend))
+            self.nodes.append(derivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend) if "derived" in x and x["derived"] == True else ObservedNode(x,self.timestart,self.timeend,self.forecast_timeend))
     def addNode(self,node):
-        self.nodes.append(derivedNode(node,self.timestart,self.timeend,self,self.forecast_timeend) if "derived" in node and node["derived"] == True else observedNode(node,self.timestart,self.timeend,self.forecast_timeend))
+        self.nodes.append(derivedNode(node,self.timestart,self.timeend,self,self.forecast_timeend) if "derived" in node and node["derived"] == True else ObservedNode(node,self.timestart,self.timeend,self.forecast_timeend))
     def batchProcessInput(self):
         self.loadData()
         self.removeOutliers()
@@ -433,29 +435,31 @@ class Topology():
         self.adjust()
     def loadData(self,include_prono=True):
         for node in self.nodes:
-            for serie in node.series:
-                if isinstance(serie,NodeSerie):
-                    serie.loadData(self.timestart,self.timeend)
-            if include_prono and node.series_prono is not None and len(node.series_prono):
-                for serie in node.series_prono:
-                    if isinstance(serie,NodeSerieProno):
-                        if self.forecast_timeend is not None:
-                            serie.loadData(self.timestart,self.forecast_timeend)
-                        else:
-                            serie.loadData(self.timestart,self.timeend)
+            if hasattr(node,"loadData"):
+                node.loadData(self.timestart,self.timeend,forecast_timeend=self.forecast_timeend)
+            # for serie in node.series:
+            #     if isinstance(serie,NodeSerie):
+            #         serie.loadData(self.timestart,self.timeend)
+                # if include_prono and node.series_prono is not None and len(node.series_prono):
+                #     for serie in node.series_prono:
+                #         if isinstance(serie,NodeSerieProno):
+                #             if self.forecast_timeend is not None:
+                #                 serie.loadData(self.timestart,self.forecast_timeend)
+                #             else:
+                #                 serie.loadData(self.timestart,self.timeend)
             # if isinstance(node,observedNode):
             #     node.loadData(self.timestart,self.timeend)
     def removeOutliers(self):
         found_outliers = False
         for node in self.nodes:
-            if isinstance(node,observedNode):
+            if isinstance(node,ObservedNode):
                 found_outliers_ = node.removeOutliers()
                 found_outliers = found_outliers_ if found_outliers_ else found_outliers
         return found_outliers
     def detectJumps(self):
         found_jumps = False
         for node in self.nodes:
-            if isinstance(node,observedNode):
+            if isinstance(node,ObservedNode):
                 found_jumps_ = node.detectJumps()
                 found_jumps = found_jumps_ if found_jumps_ else found_jumps
         return found_jumps
@@ -464,15 +468,15 @@ class Topology():
             node.applyMovingAverage()
     def applyOffset(self):
         for node in self.nodes:
-            if isinstance(node,observedNode):
+            if isinstance(node,ObservedNode):
                 node.applyOffset()
     def regularize(self):
         for node in self.nodes:
-            if isinstance(node,observedNode):
+            if isinstance(node,ObservedNode):
                 node.regularize()
     def fillNulls(self):
         for node in self.nodes:
-            if isinstance(node,observedNode):
+            if isinstance(node,ObservedNode):
                 node.fillNulls()
     def derive(self):
         for node in self.nodes:

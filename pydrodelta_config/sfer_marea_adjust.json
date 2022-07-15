@@ -1,8 +1,12 @@
 {
-    "$schema": "../schemas/boundary-set.json",
-    "timestart": "2022-06-01T03:00:00.000Z",
-    "timeend": "2022-07-10T03:00:00.000Z",
-    "boundaries": [
+    "$schema": "../schemas/topology.json",
+    "timestart": {
+        "days": -30
+    },
+    "timeend": {
+        "days": 4
+    },
+    "nodes": [
         {
             "id": 1,
             "name": "Boca río Luján - Stage Hydrograph - 1H",
@@ -73,7 +77,7 @@
                     "comment": "Boca río Uruguay H prono marea astro"
                 },
                 {
-                    "series_id": 7061,
+                    "series_id": 7060,
                     "lim_outliers": [
                         -1,
                         5
@@ -81,7 +85,7 @@
                     "lim_jump": 1,
                     "x_offset": 0,
                     "y_offset": 0,
-                    "comment": "Concepción del Uruguay H obs",
+                    "comment": "Paysandú H obs CARU",
                     "moving_average": {
                         "hours": 96
                     }
