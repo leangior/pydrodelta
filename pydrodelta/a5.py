@@ -1251,22 +1251,31 @@ def observacionesDataFrameToList(data : pandas.DataFrame,series_id : int,column=
     data = data[["series_id","timestart","timeend","valor"]]
     return data.to_dict(orient="records")
 
-def observacionesListToDataFrame(data: list):
+def observacionesListToDataFrame(data: list, tag: str=None):
     if len(data) == 0:
         raise Exception("empty list")
     data = pandas.DataFrame.from_dict(data)
-    # data["valor"] = data["valor"].astype(float)
+    data["valor"] = data["valor"].astype(float)
     data.index = data["timestart"].apply(util.tryParseAndLocalizeDate)
     data.sort_index(inplace=True)
-    return data[["valor",]].astype(float)
+    if tag is not None:
+        data["tag"] = tag
+        return data[["valor","tag"]]
+    else:
+        return data[["valor",]]
 
-def createEmptyObsDataFrame():
+def createEmptyObsDataFrame(extra_columns : dict=None):
     data = pandas.DataFrame({
         "timestart": pandas.Series(dtype='datetime64[ns, America/Argentina/Buenos_Aires]'),
         "valor": pandas.Series(dtype="float")
     })
+    cnames = ["valor"]
+    if extra_columns is not None:
+        for cname in extra_columns:
+            data[cname] = pandas.Series(dtype=extra_columns[cname])
+            cnames.append(cname)
     data.index = data["timestart"]
-    return data[["valor",]]
+    return data [cnames]
 
 def createObservaciones(data,series_id : int,column="valor",tipo="puntual", timeSupport=None,use_proxy=False):
     if isinstance(data,pandas.DataFrame):
@@ -1293,7 +1302,7 @@ def readVar(var_id,use_proxy=False):
     json_response = response.json()
     return json_response
 
-def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,cor_id=None,forecast_date=None):
+def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,cor_id=None,forecast_date=None,qualifier=None):
     """
     Reads prono serie from a5 API
     if forecast_date is not None, cor_id is overwritten by first corridas match
@@ -1325,6 +1334,8 @@ def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,
             "timeend": timeend if isinstance(timestart,str) else timeend.isoformat(),
             "series_id": series_id
         }
+    if qualifier is not None:
+        params["qualifier"] = qualifier
     url = "%s/sim/calibrados/%i/corridas/last" % (config["api"]["url"], cal_id)
     if cor_id is not None:
         url = "%s/sim/calibrados/%i/corridas/%i" % (config["api"]["url"], cal_id, cor_id)

@@ -16,6 +16,10 @@
             "description": "forecast horizon (datetime or timedelta relative to timeend)",
             "$ref": "#/$defs/DateOrInterval"
         },
+        "time_offset": {
+            "description": "time of day where timesteps start",
+            "$ref": "#/$defs/DateOrInterval"
+        },
         "nodes": {
             "description": "information nodes of the topology",
             "type": "array",
@@ -24,6 +28,7 @@
             }
         }
     },
+    "required": ["timestart","timeend","nodes"],
     "$defs": {
         "Node": {
             "type": "object",
@@ -48,7 +53,7 @@
                     "description": "Input timeseries for the node, forecasted",
                     "type": "array",
                     "items": {
-                        "$ref": "#/$defs/NodeSerie"
+                        "$ref": "#/$defs/NodeSerieProno"
                     }
                 },
                 "time_interval": {
@@ -76,7 +81,8 @@
                         "y_offset": {
                             "type": "number"
                         }
-                    }
+                    },
+                    "required": ["node_id"]
                 },
                 "interpolated_from": {
                     "title": "interpolated-from",
@@ -130,8 +136,12 @@
                             }
                         }
                     }
+                },
+                "interpolation_limit": {
+                    "type": "number"
                 }
-            }
+            },
+            "required": ["id","name","time_interval"]
         },
         "NodeSerie": {
             "type": "object",
@@ -158,6 +168,19 @@
                 "comment": {
                     "type": "string"
                 },
+                "moving_average": {
+                    "$ref": "#/$defs/TimeInterval" 
+                }
+            },
+            "required": ["series_id"]
+        },
+        "NodeSerieProno": {
+            "allOf": [
+                {
+                    "$ref" : "#/$defs/NodeSerie"
+                }
+            ],
+            "properties": {
                 "cal_id": {
                     "type": [
                         "number",
@@ -165,8 +188,11 @@
                     ],
                     "description": "id de calibrado, para utilizar salida de pronóstico"
                 },
-                "moving_average": {
-                    "$ref": "#/$defs/TimeInterval" 
+                "qualifier": {
+                    "type": "string"
+                },
+                "adjust": {
+                    "type": "boolean"
                 }
             }
         },

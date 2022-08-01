@@ -1,7 +1,14 @@
 {
     "$schema": "../schemas/topology.json",
-    "timestart": {"days": -15},
-    "timeend": {"days": 4},
+    "timestart": {
+        "days": -15
+    },
+    "timeend": {
+        "hours": -1
+    },
+    "forecast_timeend": {
+        "days": 4
+    },
     "nodes": [
         {
             "id": 1,
@@ -63,7 +70,9 @@
                     "x_offset": 0,
                     "y_offset": 0.22,
                     "comment": "borches Hinst ina-delta"
-                },
+                }
+            ],
+            "series_prono": [
                 {
                     "series_id": 26202,
                     "lim_outliers": [
@@ -80,7 +89,7 @@
             "time_interval": {
                 "hours": 1
             },
-            "output_series_id": 31537
+            "output_series_id": 31554
         },
         {
             "id": 2,
@@ -112,7 +121,9 @@
             "time_interval": {
                 "days": 1
             },
-            "time_offset": null,
+            "time_offset": {
+                "hours": 0
+            },
             "fill_value": 50,
             "output_series_id": 31530
         },
@@ -157,7 +168,9 @@
             "time_interval": {
                 "days": 1
             },
-            "time_offset": null,
+            "time_offset": {
+                "hours": 0
+            },
             "output_series_id": 31525
         },
         {
@@ -182,8 +195,10 @@
                     ],
                     "lim_jump": 0.5,
                     "x_offset": 0,
-                    "y_offset": 0
-                },
+                    "y_offset": 0.677
+                }
+            ],
+            "series_prono": [
                 {
                     "series_id": 26203,
                     "lim_outliers": [
@@ -201,14 +216,14 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": null
+            "output_series_id": 31555
         },
         {
             "id": 5,
             "name": "Bravo - Stage Hydrograph - 1H",
             "derived": true,
             "derived_from": {
-                "boundary_id": 4,
+                "node_id": 4,
                 "x_offset": 0,
                 "y_offset": 0
             },
@@ -216,15 +231,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31521
+            "output_series_id": 31556
         },
         {
             "id": 6,
             "name": "Sauce - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.9
@@ -233,15 +248,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31524
+            "output_series_id": 31561
         },
         {
             "id": 7,
             "name": "BarcaGrande - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.493
@@ -250,15 +265,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31523
+            "output_series_id": 31562
         },
         {
             "id": 8,
             "name": "Mini - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.388
@@ -267,15 +282,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31522
+            "output_series_id": 31558
         },
         {
             "id": 9,
             "name": "LaBarquita - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.427
@@ -284,15 +299,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31526
+            "output_series_id": 31568
         },
         {
             "id": 10,
             "name": "CanaldelEste - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.077
@@ -301,14 +316,14 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31527
+            "output_series_id": 31564
         },
         {
             "id": 11,
             "name": "Lujan Desembocadura - Stage Hydrograph - 1H",
             "derived": true,
             "derived_from": {
-                "boundary_id": 1,
+                "node_id": 1,
                 "x_offset": 0,
                 "y_offset": 0
             },
@@ -316,15 +331,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31528
+            "output_series_id": 31557
         },
         {
             "id": 12,
             "name": "SanAntonio - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.024
@@ -333,14 +348,14 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31529
+            "output_series_id": 31560
         },
         {
             "id": 13,
             "name": "Gutierrez - Stage Hydrograph - 1H",
             "derived": true,
             "derived_from": {
-                "boundary_id": 4,
+                "node_id": 4,
                 "x_offset": 0,
                 "y_offset": 0
             },
@@ -348,15 +363,15 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31532
+            "output_series_id": 31567
         },
         {
             "id": 14,
             "name": "Guazu - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.800
@@ -365,7 +380,7 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31533
+            "output_series_id": 31566
         },
         {
             "id": 15,
@@ -399,15 +414,15 @@
             },
             "time_offset": null,
             "fill_value": 50,
-            "output_series_id": 31534
+            "output_series_id": 31570
         },
         {
             "id": 16,
             "name": "Correntoso - Stage Hydrograph - 1H",
             "derived": true,
             "interpolated_from": {
-                "boundary_id_1": 1,
-                "boundary_id_2": 4,
+                "node_id_1": 1,
+                "node_id_2": 4,
                 "x_offset": 0,
                 "y_offset": 0,
                 "interpolation_coefficient": 0.598
@@ -416,7 +431,7 @@
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31535
+            "output_series_id": 31565
         }
     ]
 }

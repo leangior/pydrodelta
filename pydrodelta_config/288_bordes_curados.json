@@ -118,6 +118,13 @@
                     "comment": "LUJAN @ JAUREGUI QmedDiaria DPH (viejo)"
                 }
             ],
+            "series_prono": [
+                {
+                    "series_id": 1470,
+                    "cal_id": 36,
+                    "comment": "Sac-EnKF Luján @ Jáuregui"
+                }
+            ],
             "time_interval": {
                 "days": 1
             },
@@ -407,6 +414,13 @@
                     "x_offset": 0,
                     "y_offset": 0,
                     "comment": "GUALEGUAY @ RTALA Qinst SAT2 (RHN)"
+                }
+            ],
+            "series_prono": [
+                {
+                    "series_id": 1505, 
+                    "cal_id": 32,
+                    "comment": "Sac-EnKF Gualeguay @ Tala"
                 }
             ],
             "time_interval": {

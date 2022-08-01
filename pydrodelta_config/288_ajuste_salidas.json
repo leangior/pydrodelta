@@ -1,8 +1,8 @@
 {
-    "$schema": "../schemas/boundary-set.json",
+    "$schema": "../schemas/topology.json",
     "timestart": "2022-06-01T03:00:00.000Z",
     "timeend": "2022-07-10T03:00:00.000Z",
-    "boundaries": [
+    "nodes": [
         {
             "id": 1,
             "name": "Zarate",
@@ -113,7 +113,7 @@
             },
             "derived": true,
             "derived_from": {
-                "boundary_id": 2,
+                "node_id": 2,
                 "x_offset": {
                     "hours": 1
                 },

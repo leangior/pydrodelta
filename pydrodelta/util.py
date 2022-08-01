@@ -103,18 +103,93 @@ def createDatetimeSequence(datetime_index : pandas.DatetimeIndex=None, timeInter
     timeend = roundDate(timeend,timeInterval,timeOffset,"down")
     return pandas.date_range(start=timestart, end=timeend, freq=pandas.DateOffset(days=timeInterval.days, hours=timeInterval.seconds // 3600, minutes = (timeInterval.seconds // 60) % 60))
 
-def serieRegular(data : pandas.DataFrame, timeInterval : timedelta, timestart=None, timeend=None, timeOffset=None, column="valor", interpolate=True, interpolation_limit=1):
-    # genera serie regular y rellena nulos interpolando
-    df_regular = pandas.DataFrame(index = createDatetimeSequence(data.index, timeInterval, timestart, timeend, timeOffset))
-    df_regular.index.rename('timestart', inplace=True)	 
+def f1(row,column="valor",timedelta_threshold=None):
+    if -row["diff_with_next"] > timedelta_threshold:
+        return row[column]
+    else:
+        return row["interpolated_backward"]
+
+def f2(row,column="valor",timedelta_threshold=None):
+    if row["diff_with_previous"] > timedelta_threshold:
+        return row[column]
+    else:
+        return row["interpolated_forward"]
+
+def f3(row,column="valor",timedelta_threshold=None):
+    if pandas.isna(row["interpolated_forward_filtered"]):
+        return row["interpolated_backward_filtered"]
+    else:
+        return row["interpolated_forward_filtered"]
+
+def f4(row,column="valor",tag_column="tag"):
+    if pandas.isna(row["interpolated_final"]):
+        return row[tag_column]
+    elif pandas.isna(row[column]):
+        return "interpolated"
+    else:
+        return row[tag_column]
+
+def serieRegular(data : pandas.DataFrame, time_interval : timedelta, timestart=None, timeend=None, time_offset=None, column="valor", interpolate=True, interpolation_limit=1,tag_column=None, extrapolate=False):
+    """
+    genera serie regular y rellena nulos interpolando
+    if interpolate=False, interpolates only to the closest timestep of the regular timeseries. If observation is equidistant to preceding and following timesteps it interpolates to both.
+    """
+    df_regular = pandas.DataFrame(index = createDatetimeSequence(data.index, time_interval, timestart, timeend, time_offset))
+    df_regular.index.rename('timestart', inplace=True)
+    if not len(data):
+        df_regular[column] = None
+        if tag_column is not None:
+            df_regular[tag_column] = None
+        return df_regular
     df_join = df_regular.join(data, how = 'outer')
     if interpolate:
         # Interpola
-        df_join[column] = df_join[column].interpolate(method='time',limit=interpolation_limit,limit_direction='both')
-    df_regular = df_regular.join(df_join, how = 'left')
+        min_obs_date, max_obs_date = (df_join[~pandas.isna(df_join[column])].index.min(),df_join[~pandas.isna(df_join[column])].index.max())
+        df_join["interpolated"] = df_join[column].interpolate(method='time',limit=interpolation_limit,limit_direction='both',limit_area=None if extrapolate else 'inside')
+        if tag_column is not None:
+            # print("columns: " + df_join.columns)
+            df_join[tag_column] = [x[tag_column] if pandas.isna(x["interpolated"]) else "extrapolated" if i < min_obs_date or i > max_obs_date else "interpolated" if pandas.isna(x[column]) else x[tag_column] for (i, x) in df_join.iterrows()]
+        df_join[column] = df_join["interpolated"]
+        del df_join["interpolated"]
+        df_regular = df_regular.join(df_join, how = 'left')
+    else:
+        timedelta_threshold = time_interval / 2 # takes half time interval as maximum time distance for interpolation
+        df_join = df_join.reset_index()
+        df_join["diff_with_previous"] = df_join["timestart"].diff()
+        df_join["diff_with_next"] = df_join["timestart"].diff(periods=-1)
+        df_join = df_join.set_index("timestart")
+        df_join["interpolated_backward"] = df_join[column].interpolate(method='time',limit=1,limit_direction='backward',limit_area=None)
+        df_join["interpolated_forward"] = df_join[column].interpolate(method='time',limit=1,limit_direction='forward',limit_area=None)
+        df_join["interpolated_backward_filtered"] = df_join.apply(lambda row: f1(row,column,timedelta_threshold),axis=1) #[ x[column] if -x["diff_with_next"] > timedelta_threshold else x.interpolated_backward for (i,x) in df_join.iterrows()]
+        df_join["interpolated_forward_filtered"] = df_join.apply(lambda row: f2(row,column,timedelta_threshold),axis=1)#[ x[column] if x["diff_with_previous"] > timedelta_threshold else x.interpolated_forward for (i,x) in df_join.iterrows()]
+        df_join["interpolated_final"] = df_join.apply(lambda row: f3(row,column,timedelta_threshold),axis=1) #[x.interpolated_backward_filtered if pandas.isna(x.interpolated_forward_filtered) else x.interpolated_forward_filtered for (i,x) in df_join.iterrows()]
+        if tag_column is not None:
+            df_join["new_tag"] = df_join.apply(lambda row: f4(row,column,tag_column),axis=1) #[x[tag_column] if pandas.isna(x.interpolated_final) else "interpolated" if pandas.isna(x.valor) else x[tag_column] for (i,x) in df_join.iterrows()]
+            df_regular = df_regular.join(df_join[["interpolated_final","new_tag"]].rename(columns={"interpolated_final":column,"new_tag":tag_column}), how = 'left')
+        else:
+            df_regular = df_regular.join(df_join[["interpolated_final",]].rename(columns={"interpolated_final":column}), how = 'left')
     return df_regular
 
-def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, column : str="valor", other_column : str="valor", fill_value : float=None, shift_by : int=0, bias : float=0, extend=False):
+def f5(row,column="valor",tag_column="tag",min_obs_date=None,max_obs_date=None):
+    if pandas.isna(row["interpolated"]):
+        return row[tag_column]
+    elif row.name < min_obs_date or row.name > max_obs_date:
+        return "extrapolated"
+    elif pandas.isna(row[column]):
+        return "interpolated"
+    else:
+        return row[tag_column]
+
+def interpolateData(data,column="valor",tag_column=None,interpolation_limit=1,extrapolate=False):
+    min_obs_date, max_obs_date = (data[~pandas.isna(data[column])].index.min(),data[~pandas.isna(data[column])].index.max())
+    data["interpolated"] = data[column].interpolate(method='time',limit=interpolation_limit,limit_direction='both',limit_area=None if extrapolate else 'inside')
+    if tag_column is not None:
+        data[tag_column] = data.apply(lambda row: f5(row,column,tag_column,min_obs_date,max_obs_date),axis=1)#[x[tag_column] if pandas.isna(x["interpolated"]) else "extrapolated" if i < min_obs_date or i > max_obs_date else "interpolated" if pandas.isna(x[column]) else x[tag_column] for (i, x) in data.iterrows()]
+    data[column] = data["interpolated"]
+    del data["interpolated"]
+    return data
+
+def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, column : str="valor", other_column : str="valor", fill_value : float=None, shift_by : int=0, bias : float=0, extend=False, tag_column=None):
     """
     rellena nulos de data con valores de other_data donde coincide el index. Opcionalmente aplica traslado rígido en x (shift_by: n registros) y en y (bias: float)
 
@@ -123,15 +198,29 @@ def serieFillNulls(data : pandas.DataFrame, other_data : pandas.DataFrame, colum
     mapper = {}
     mapper[other_column] = "valor_fillnulls"
     how = "outer" if extend else "left"
-    data = data.join(other_data[[other_column,]].rename(mapper,axis=1), how = how)
-    data[column] = data[column].fillna(data["valor_fillnulls"].shift(shift_by, axis = 0) + bias)
-    del data["valor_fillnulls"]
-    if fill_value is not None:
-        data[column] = data[column].fillna(fill_value)
+    if tag_column is not None:
+        mapper[tag_column] = "tag_fillnulls"
+        data = data.join(other_data[[other_column,tag_column]].rename(mapper,axis=1), how = how)
+        data[column] = data[column].fillna(data["valor_fillnulls"].shift(shift_by, axis = 0) + bias)    
+        data[tag_column] = data[tag_column].fillna(data["tag_fillnulls"].shift(shift_by, axis = 0))
+        if fill_value is not None:
+            data[column] = data[column].fillna(fill_value)
+            data[tag_column] = data[tag_column].fillna("filled")
+        del data["valor_fillnulls"]
+        del data["tag_fillnulls"]
+    else:
+        data = data.join(other_data[[other_column,]].rename(mapper,axis=1), how = how)
+        data[column] = data[column].fillna(data["valor_fillnulls"].shift(shift_by, axis = 0) + bias)
+        del data["valor_fillnulls"]
+        if fill_value is not None:
+            data[column] = data[column].fillna(fill_value)
     return data
 
-def serieMovingAverage(obs_df : pandas.DataFrame,offset : timedelta, column : str="valor"):
-    return obs_df[column].rolling(offset, min_periods=1).mean()
+def serieMovingAverage(obs_df : pandas.DataFrame,offset : timedelta, column : str="valor", tag_column : str=None):
+    data = obs_df[column].rolling(offset, min_periods=1).mean()
+    if tag_column is not None:
+        obs_df[tag_column] = [x if not pandas.isna(x) else "moving_average" for x in obs_df[tag_column]]
+    return data
 
 def applyTimeOffsetToIndex(obs_df,x_offset):
     original_df = obs_df[["valor",]]
@@ -165,39 +254,46 @@ def detectJumps(data : pandas.DataFrame,lim_jump,column="valor"):
     returns jump rows as data frame
     '''
     # print('Detecta Saltos:')	
-    VecDif = abs(np.diff(data[column].values))
+    data_ = data[[column,]]
+    VecDif = abs(np.diff(data_[column].values))
     VecDif = np.append([0,],VecDif)
     coldiff = 'Diff_Valor'
-    data[coldiff] = VecDif
+    data_[coldiff] = VecDif
     # print('Limite Salto (m): ',lim_jump)
-    df_saltos = data[data[coldiff] > lim_jump].sort_values(by=coldiff)
+    df_saltos = data_[data_[coldiff] > lim_jump].sort_values(by=coldiff)
     logging.debug('Cantidad de Saltos: %i' % len(df_saltos))
-    del data[coldiff]
+    del data_[coldiff]
     return df_saltos
 
-def adjustSeries(sim_df,truth_df,method="lfit",plot=True,return_adjusted_series=True)  -> pandas.Series:
+def adjustSeries(sim_df,truth_df,method="lfit",plot=True,return_adjusted_series=True,tag_column=None,title=None)  -> pandas.Series:
     if method == "lfit":
         data = truth_df.join(sim_df,how="left",rsuffix="_sim")
-        lr, quant_Err =  ModelRL(data,"valor",["valor_sim"])
+        lr, quant_Err, r2, coef, intercept =  ModelRL(data,"valor",["valor_sim"])
+        # logging.info(quant_Err)
         # Prediccion
-        df_base_aux = data[["valor_sim"]].copy().dropna()
-        predict = lr.predict(df_base_aux[["valor_sim"]].values)
+        aux_df = sim_df.copy().dropna()
+        predict = lr.predict(aux_df[["valor"]].values)
+        aux_df["adj"] = predict
+        aux_df = aux_df.rename(columns={"valor":"valor_sim","tag":"tag_sim"}).join(truth_df.rename(columns={"valor":"valor_obs","tag":"tag_obs"}),how='outer')
         if plot:
-            df_base_aux["adj"] = predict
-            data = data.join(df_base_aux[["adj",]],how="left")
             plt.figure(figsize=(16,8))
-            plt.plot(data)
-            plt.legend(data.columns)
+            plt.plot(aux_df[["valor_obs","valor_sim","adj"]]) # (data)
+            plt.legend(["valor_obs","valor_sim","adj"]) # data.columns)
+            if title:
+                plt.title(title)
+            plt.figtext(0.5, 0.01, "r2: %.04f, coef: %s, intercept: %.04f" % (r2,",".join(["%.04f" % x for x in coef]), intercept))
         if return_adjusted_series:
-            return data["adj"]
+            if tag_column is not None:
+                aux_df["tag_adj"] = [None if pandas.isna(x) else "%s,adjusted" % x for x in aux_df["tag_sim"]]
+                return (aux_df["adj"], aux_df["tag_adj"],{"lr": lr, "quant_Err": quant_Err, "r2": r2, "coef": coef, "intercept": intercept})
+            else:
+                return (aux_df["adj"], None, {"lr": lr, "quant_Err": quant_Err, "r2": r2, "coef": coef, "intercept": intercept})
         else:
-            return lr
-        #df_base_aux['valor_predic'] = prediccion
-        # df_base = df_base.join(df_base_aux['Y_predic'], how = 'outer')
+            return {"lr": lr, "quant_Err": quant_Err, "r2": r2, "coef": coef, "intercept": intercept}
     else:
         raise Exception("unknown method " + method)
 
-def linearCombination(sim_df : pandas.DataFrame,params : dict,plot=True) -> pandas.Series:
+def linearCombination(sim_df : pandas.DataFrame,params : dict,plot=True,tag_column=None) -> pandas.Series:
     '''
         sim_df: DataFrame con las covariables
         params: { intercept: float, coefficients: [float,...]
@@ -211,7 +307,11 @@ def linearCombination(sim_df : pandas.DataFrame,params : dict,plot=True) -> pand
         plt.figure(figsize=(16,8))
         plt.plot(sim_df)
         plt.legend(sim_df.columns)
-    return sim_df["predict"]
+    if tag_column is not None:
+        sim_df[tag_column] = ["%s,linear_combination" % x if ~pandas.isna(x) else None for x in sim_df[tag_column]]
+        return (sim_df["predict"], sim_df[tag_column])
+    else:
+        return sim_df["predict"]
 
 def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     train = data.copy()
@@ -225,8 +325,11 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     lr = linear_model.LinearRegression()
     X_train = train[covariav]
     Y_train = train[var_obj]
-    lr.fit(X_train,Y_train)
-
+    reg = lr.fit(X_train,Y_train)
+    r2 = reg.score(X_train,Y_train)
+    coef = reg.coef_
+    intercept = reg.intercept_
+    logging.info("linear model. r2: %.04f, coefs: %s, intercept: %.04f" % (r2,",".join([str(x) for x in coef]),intercept))
     # Create the test features dataset (X_test) which will be used to make the predictions.
     X_test = train[covariav].values
     # The labels of the model
@@ -243,5 +346,5 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     train['Error_pred'] =  train['Y_predictions']  - train[var_obj]
     quant_Err = train['Error_pred'].quantile([.001,.05,.95,.999])
     
-    return lr,quant_Err
+    return lr,quant_Err,r2,coef,intercept
     

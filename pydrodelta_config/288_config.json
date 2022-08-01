@@ -1,6 +1,11 @@
 {
-    "boundaries":[
+    "$schema": "../schemas/topology.json",
+    "timestart": {"days": -15},
+    "timeend": {"days": 4},
+    "nodes": [
         {
+            "id": 1,
+            "name": "san fernando stage hydrograph 1h",
             "series":[
                 {"series_id": 85, "lim_outliers":[-3.03,5.0],"lim_jump":0.835,"x_offset":0,"y_offset":0},
                 {"series_id": 52, "lim_outliers":[-2.25,4.62],"lim_jump":0.958,"x_offset":0,"y_offset":0},
@@ -11,8 +16,11 @@
             "time_interval": {"hours":1},
             "timestart": "2022-05-01",
             "timeend": "2022-06-01",
-            "output_series_id": 31537},
+            "output_series_id": 31537
+        },
         {
+            "id": 2,
+            "name": "lujan discharge 1d",
             "series":[
                 {"series_id": 26711, "lim_outliers":[0.0,1000.0],"lim_jump":1000.0,"x_offset":0,"y_offset":0, "comment": "LUJAN @ JAUREGUI QmedDiaria UNLU (actual)"},
                 {"series_id": 31536, "lim_outliers":[0.0,10000.0],"lim_jump":1000.0,"x_offset":0,"y_offset":0, "comment": "LUJAN @ JAUREGUI QmedDiaria DPH (viejo)"}  
@@ -24,6 +32,8 @@
             "fill_value": 50,
             "output_series_id": 31530},
         {
+            "id": 3,
+            "name": "paraná stage 1d",
             "series":[
                 {"series_id": 26271, "lim_outliers": [-1.5,8.0], "lim_jump": 0.7, "x_offset": 0, "y_offset": 0, "comment": "Paraná Prefectura H media diaria"},
                 {"series_id":26272, "lim_outliers": [-1.5,8.0], "lim_jump":0.7, "x_offset": 0, "y_offset": -0.22, "comment":"Santa Fe prefe H media diaria"},
