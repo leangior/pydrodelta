@@ -1,4 +1,4 @@
-import pydrodelta.analysis as analysis
+import src.pydrodelta.analysis as analysis
 import json
 import logging
 import sys

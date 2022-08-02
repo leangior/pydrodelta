@@ -1,120 +1,38 @@
-2022-07-13 13:19:38,806:DEBUG:Load data for series_id: 52
-2022-07-13 13:19:38,808:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:38,983:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/52?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,074:DEBUG:Load data for series_id: 85
-2022-07-13 13:19:39,076:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,150:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/85?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,212:DEBUG:Load data for series_id: 3279
-2022-07-13 13:19:39,213:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,276:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/3279?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,327:DEBUG:Load data for series_id: 3280
-2022-07-13 13:19:39,329:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,495:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/3280?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,635:DEBUG:Load data for series_id: 2111
-2022-07-13 13:19:39,636:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,716:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/2111?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,803:DEBUG:Load prono data for series_id: 26202, cal_id: 432
-2022-07-13 13:19:39,804:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,834:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/sim/calibrados/432/corridas/last?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-17T13%3A19%3A38.806115-03%3A00&series_id=26202 HTTP/1.1" 200 44990
-2022-07-13 13:19:39,857:DEBUG:Load data for series_id: 26711
-2022-07-13 13:19:39,859:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,884:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/26711?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,904:DEBUG:Load data for series_id: 31536
-2022-07-13 13:19:39,905:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,934:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/31536?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,937:WARNING:No data found for series_id=31536
-2022-07-13 13:19:39,942:DEBUG:Load data for series_id: 26271
-2022-07-13 13:19:39,944:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:39,982:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/26271?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:39,995:DEBUG:Load data for series_id: 26272
-2022-07-13 13:19:39,996:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:40,063:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/26272?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:40,084:DEBUG:Load data for series_id: 29439
-2022-07-13 13:19:40,085:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:40,262:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/29439?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:40,323:DEBUG:Load data for series_id: 3280
-2022-07-13 13:19:40,324:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:40,494:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/3280?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:40,974:DEBUG:Load data for series_id: 2111
-2022-07-13 13:19:40,975:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:41,054:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/2111?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:41,115:DEBUG:Load prono data for series_id: 26203, cal_id: 433
-2022-07-13 13:19:41,116:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:41,190:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/sim/calibrados/433/corridas/last?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-17T13%3A19%3A38.806115-03%3A00&series_id=26203 HTTP/1.1" 200 53315
-2022-07-13 13:19:41,212:DEBUG:Load data for series_id: 18611
-2022-07-13 13:19:41,214:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:41,243:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/18611?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:41,260:DEBUG:Load data for series_id: 7806
-2022-07-13 13:19:41,261:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:41,360:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/7806?timestart=2022-05-12T13%3A19%3A38.806013-03%3A00&timeend=2022-07-13T12%3A19%3A38.806079-03%3A00 HTTP/1.1" 200 None
-2022-07-13 13:19:41,420:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,421:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,422:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,424:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,425:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,427:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,428:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,429:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,431:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,432:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,433:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,435:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,436:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,437:DEBUG:Cantidad de outliers: 0
-2022-07-13 13:19:41,442:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,445:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,447:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,450:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,452:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,454:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,457:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,460:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,462:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,464:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,467:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,469:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,471:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:41,474:DEBUG:Cantidad de Saltos: 0
-2022-07-13 13:19:42,344:DEBUG:Deriving 31556 from Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,345:DEBUG:Interpolating 31561 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,348:DEBUG:Interpolating 31562 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,351:DEBUG:Interpolating 31558 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,355:DEBUG:Interpolating 31568 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,358:DEBUG:Interpolating 31564 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,361:DEBUG:Deriving 31557 from San Fernando - Stage Hydrograph - 1H
-2022-07-13 13:19:42,362:DEBUG:Interpolating 31560 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,365:DEBUG:Deriving 31567 from Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,366:DEBUG:Interpolating 31566 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:42,369:DEBUG:Interpolating 31565 from San Fernando - Stage Hydrograph - 1H and Nueva Palmira - Stage Hydrograph -1H
-2022-07-13 13:19:43,702:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:43,968:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31554/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:44,028:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:44,098:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31530/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:44,163:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:44,237:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31525/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:45,456:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:45,743:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31555/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:46,993:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:47,254:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31556/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:48,472:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:48,741:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31561/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:49,981:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:50,192:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31562/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:51,394:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:51,594:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31558/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:52,793:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:53,011:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31568/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:54,204:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:54,417:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31564/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:55,629:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:55,844:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31557/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:57,150:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:57,353:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31560/observaciones HTTP/1.1" 200 None
-2022-07-13 13:19:58,902:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:19:59,094:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31567/observaciones HTTP/1.1" 200 None
-2022-07-13 13:20:00,593:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:20:00,825:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31566/observaciones HTTP/1.1" 200 None
-2022-07-13 13:20:00,891:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:20:00,946:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31570/observaciones HTTP/1.1" 200 None
-2022-07-13 13:20:02,389:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
-2022-07-13 13:20:02,629:DEBUG:https://alerta.ina.gob.ar:443 "POST /a5/obs/puntual/series/31565/observaciones HTTP/1.1" 200 None
+2022-08-02 11:05:30,500:DEBUG:loadData
+2022-08-02 11:05:30,500:DEBUG:Load data for observed node: 1
+2022-08-02 11:05:30,500:DEBUG:Load data for series_id: 927
+2022-08-02 11:05:30,502:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
+2022-08-02 11:05:30,565:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/927?timestart=2022-07-18T00%3A00%3A00-03%3A00&timeend=2022-08-02T11%3A00%3A00-03%3A00 HTTP/1.1" 200 None
+2022-08-02 11:05:30,752:DEBUG:Load prono data for series_id: 7833, cal_id: 485
+2022-08-02 11:05:30,754:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
+2022-08-02 11:05:31,029:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/sim/calibrados/485/corridas/last?timestart=2022-07-18T00%3A00%3A00-03%3A00&timeend=2022-08-07T11%3A05%3A30.500425-03%3A00&series_id=7833&qualifier=medio HTTP/1.1" 200 580
+2022-08-02 11:05:31,043:DEBUG:Load data for observed node: 2
+2022-08-02 11:05:31,043:DEBUG:Load data for series_id: 3280
+2022-08-02 11:05:31,045:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
+2022-08-02 11:05:31,931:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/3280?timestart=2022-07-18T00%3A00%3A00-03%3A00&timeend=2022-08-02T11%3A00%3A00-03%3A00 HTTP/1.1" 200 None
+2022-08-02 11:05:31,968:DEBUG:Load data for series_id: 2111
+2022-08-02 11:05:31,969:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
+2022-08-02 11:05:32,176:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/obs/puntual/series/2111?timestart=2022-07-18T00%3A00%3A00-03%3A00&timeend=2022-08-02T11%3A00%3A00-03%3A00 HTTP/1.1" 200 None
+2022-08-02 11:05:32,203:DEBUG:Load prono data for series_id: 26203, cal_id: 433
+2022-08-02 11:05:32,205:DEBUG:Starting new HTTPS connection (1): alerta.ina.gob.ar:443
+2022-08-02 11:05:32,315:DEBUG:https://alerta.ina.gob.ar:443 "GET /a5/sim/calibrados/433/corridas/last?timestart=2022-07-18T00%3A00%3A00-03%3A00&timeend=2022-08-07T11%3A05%3A30.500425-03%3A00&series_id=26203 HTTP/1.1" 200 52106
+2022-08-02 11:05:32,351:DEBUG:removeOutliers
+2022-08-02 11:05:32,409:DEBUG:Cantidad de outliers: 0
+2022-08-02 11:05:32,414:DEBUG:Cantidad de outliers: 0
+2022-08-02 11:05:32,417:DEBUG:Cantidad de outliers: 0
+2022-08-02 11:05:32,418:DEBUG:detectJumps
+2022-08-02 11:05:32,421:DEBUG:Cantidad de Saltos: 0
+2022-08-02 11:05:32,424:DEBUG:Cantidad de Saltos: 0
+2022-08-02 11:05:32,427:DEBUG:Cantidad de Saltos: 0
+2022-08-02 11:05:32,428:DEBUG:applyOffset
+2022-08-02 11:05:32,428:DEBUG:regularize
+2022-08-02 11:05:33,318:DEBUG:applyMovingAverage
+2022-08-02 11:05:33,319:DEBUG:fillNulls
+2022-08-02 11:05:33,319:WARNING:No other series to fill nulls with
+2022-08-02 11:05:33,324:DEBUG:adjust
+2022-08-02 11:05:33,424:INFO:linear model. r2: 0.7563, coefs: 0.9893337713134607, intercept: 0.0219
+2022-08-02 11:05:33,428:DEBUG:Coefficients B0: 0.02189, coefficients: 0.98933, Mean squared error: 0.00528, r2_score: 0.75630
+2022-08-02 11:05:34,433:DEBUG:derive
+2022-08-02 11:05:34,434:DEBUG:interpolate
+2022-08-02 11:05:34,434:INFO:interpolation limit:48
+2022-08-02 11:05:34,445:INFO:interpolation limit:None

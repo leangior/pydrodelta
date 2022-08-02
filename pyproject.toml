@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydrodelta"
+version = "0.0.1"
+dependencies = [
+    "requests",
+    "datetime",
+    "numpy",
+    "matplotlib",
+    "logging",
+    "pandas",
+    "dateutil",
+    "pytz",
+    "sklearn",
+    "jsonschema"
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tools.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pydrodelta = ["config/config_empty.json", "data/schemas/*.json", "data/topologies/*.json","data/notebooks/*.ipynb"]

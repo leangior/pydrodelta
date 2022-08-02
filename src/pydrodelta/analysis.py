@@ -1,13 +1,17 @@
-import pydrodelta.a5 as a5
-import pydrodelta.util as util
+import src.pydrodelta.a5 as a5
+import src.pydrodelta.util as util
 from datetime import timedelta, datetime 
 import json
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import pandas
+import jsonschema
 
-config_file = open("config.json")
+schema = open("src/pydrodelta/data/schemas/topology.json")
+schema = json.load(schema)
+
+config_file = open("src/pydrodelta/config/config.json")
 config = json.load(config_file)
 config_file.close()
 
@@ -480,6 +484,7 @@ class InterpolatedOrigin:
 
 class Topology():
     def __init__(self,params):
+        jsonschema.validate(instance=params,schema=schema)
         self.timestart = util.tryParseAndLocalizeDate(params["timestart"])
         self.timeend = util.tryParseAndLocalizeDate(params["timeend"])
         self.forecast_timeend = util.tryParseAndLocalizeDate(params["forecast_timeend"]) if "forecast_timeend" in params else None
@@ -487,6 +492,7 @@ class Topology():
         self.time_offset_end = util.interval2timedelta(params["time_offset_end"]) if "time_offset_end" in params else util.interval2timedelta(params["time_offset"]) if "time_offset" in params else timedelta(hours=datetime.now().hour)
         self.timestart = self.timestart.replace(hour=0,minute=0,second=0,microsecond=0) + self.time_offset_start
         self.timeend = self.timeend.replace(hour=0,minute=0,second=0,microsecond=0) + self.time_offset_end
+        self.interpolation_limit = None if "interpolation_limit" not in params else util.interval2timedelta(params["interpolation_limit"]) if isinstance(params["interpolation_limit"],dict) else params["interpolation_limit"]
         self.nodes = []
         for x in params["nodes"]:
             self.nodes.append(derivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend) if "derived" in x and x["derived"] == True else ObservedNode(x,self.timestart,self.timeend,self.forecast_timeend))
@@ -515,7 +521,7 @@ class Topology():
         logging.debug("derive")
         self.derive()
         logging.debug("interpolate")
-        self.interpolate(limit=timedelta(hours=12))
+        self.interpolate(limit=self.interpolation_limit)
     def loadData(self,include_prono=True):
         for node in self.nodes:
             if hasattr(node,"loadData"):

@@ -1,0 +1,2 @@
+include src/pydrodelta/data/schemas/*.json
+include src/pydrodelta/config/config_empty.json

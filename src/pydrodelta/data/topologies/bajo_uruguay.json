@@ -1,5 +1,5 @@
 {
-    "$schema": "../schemas/topology.json",
+    "$schema": "../src/pydrodelta/data/schemas/topology.json",
     "timestart": {"days":-15},
     "timeend": {"hours":0},
     "forecast_timeend": {"days": 5},
