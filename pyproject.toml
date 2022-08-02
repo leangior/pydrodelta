@@ -10,9 +10,7 @@ dependencies = [
     "datetime",
     "numpy",
     "matplotlib",
-    "logging",
     "pandas",
-    "dateutil",
     "pytz",
     "sklearn",
     "jsonschema"
@@ -23,6 +21,7 @@ include-package-data = true
 
 [tools.setuptools.packages.find]
 where = ["src"]
+include = ["pydrodelta*"]
 
-[tool.setuptools.package-data]
-pydrodelta = ["config/config_empty.json", "data/schemas/*.json", "data/topologies/*.json","data/notebooks/*.ipynb"]
+# [tool.setuptools.package-data]
+# pydrodelta = ["config/config_empty.json", "data/schemas/*.json", "data/topologies/*.json","data/notebooks/*.ipynb"]

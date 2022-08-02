@@ -1,5 +1,5 @@
-import src.pydrodelta.a5 as a5
-import src.pydrodelta.util as util
+import pydrodelta.a5 as a5
+import pydrodelta.util as util
 from datetime import timedelta, datetime 
 import json
 import numpy as np
@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 import logging
 import pandas
 import jsonschema
+import os
 
-schema = open("src/pydrodelta/data/schemas/topology.json")
+schema = open("%s/data/schemas/topology.json" % os.environ["PYDRODELTA_DIR"])
 schema = json.load(schema)
 
-config_file = open("src/pydrodelta/config/config.json")
+config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = json.load(config_file)
 config_file.close()
 
@@ -456,8 +457,8 @@ class InterpolatedOrigin:
     def __init__(self,params,topology=None):
         self.node_id_1 = params["node_id_1"]
         self.node_id_2 = params["node_id_2"]
-        self.x_offset = util.interval2timedelta(params["x_offset"]) if isinstance(params["x_offset"],dict) else params["x_offset"]
-        self.y_offset = params["y_offset"]
+        self.x_offset = {"hours":0} if "x_offset" not in params else util.interval2timedelta(params["x_offset"]) if isinstance(params["x_offset"],dict) else params["x_offset"]
+        self.y_offset = params["y_offset"] if "y_offset" in params else 0
         self.interpolation_coefficient = params["interpolation_coefficient"]
         if topology is not None:
             from_nodes = [x for x in topology.nodes if x.id == self.node_id_1]

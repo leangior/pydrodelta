@@ -1,2 +1,5 @@
-include src/pydrodelta/data/schemas/*.json
-include src/pydrodelta/config/config_empty.json
+include data/schemas/*.json
+include config/config_empty.json
+include data/topologies/*.json
+include data/notebooks/*.ipynb
+include data/schemas/*.json

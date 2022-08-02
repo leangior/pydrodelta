@@ -1,10 +1,11 @@
 from jsonschema import validate as json_validate
 import requests
 import pandas
-import src.pydrodelta.util as util
+import pydrodelta.util as util
 import json
+import os
 
-config_file = open("src/pydrodelta/config/config.json")
+config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = json.load(config_file)
 config_file.close()
 
