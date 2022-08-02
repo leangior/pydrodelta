@@ -26,7 +26,7 @@ extract content into $PROJECT_DIR
     python3 -m pip install .
     export PYDRODELTA_DIR=$PWD
     cp config/config_empty.json config/config.json
-    nano config/config.empty # <- input api connection parameters
+    nano config/config.json # <- input api connection parameters
 
 ### use examples
 
