@@ -254,7 +254,7 @@ def detectJumps(data : pandas.DataFrame,lim_jump,column="valor"):
     returns jump rows as data frame
     '''
     # print('Detecta Saltos:')	
-    data_ = data[[column,]]
+    data_ = data[[column,]].copy()
     VecDif = abs(np.diff(data_[column].values))
     VecDif = np.append([0,],VecDif)
     coldiff = 'Diff_Valor'

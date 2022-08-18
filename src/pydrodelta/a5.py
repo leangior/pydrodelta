@@ -4,6 +4,7 @@ import pandas
 import pydrodelta.util as util
 import json
 import os
+from datetime import datetime
 
 config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = json.load(config_file)
@@ -1212,11 +1213,48 @@ schemas = {
     }
 }
 
+serie_schema = open("%s/data/schemas/serie.json" % os.environ["PYDRODELTA_DIR"])
+serie_schema = json.load(serie_schema)
+
 def validate(instance,classname):
     if classname not in schemas.keys():
         raise Exception("Invalid class")
     return json_validate(instance,schema=schemas[classname])
 
+# CLASSES
+
+class Serie():
+    def __init__(self,params):
+        json_validate(params,schema=serie_schema)
+        self.id = params["id"] if "id" in params else None
+        self.tipo = params["tipo"] if "tipo" in params else None
+        self.observaciones = [Observacion(o) for o in params["observaciones"]] if "observaciones" in params else []
+    def toDict(self):
+        return {
+            "id": self.id,
+            "tipo": self.tipo,
+            "observaciones": [o.toDict() for o in self.observaciones]
+        }
+
+class Observacion():
+    def __init__(self,params):
+        # json_validate(params,"Observacion")
+        self.timestart = params["timestart"] if isinstance(params["timestart"],datetime) else util.tryParseAndLocalizeDate(params["timestart"])
+        self.timeend = None if "timeend" not in params else params["timeend"] if isinstance(params["timeend"],datetime) else util.tryParseAndLocalizeDate(params["timeend"])
+        self.valor = params["valor"]
+        self.series_id = params["series_id"] if "series_id" in params else None
+        self.tipo = params["tipo"] if "tipo" in params else "puntual"
+        self.tag = params["tag"] if "tag" in params else None
+    def toDict(self):
+        return {
+            "timestart": self.timestart.isoformat(),
+            "timeend": self.timeend.isoformat() if self.timeend is not None else None,
+            "valor": self.valor,
+            "series_id": self.series_id,
+            "tipo": self.tipo,
+            "tag": self.tag
+        }
+            
 # CRUD
 
 def readSerie(series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=False):

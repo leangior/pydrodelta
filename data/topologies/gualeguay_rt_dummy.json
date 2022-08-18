@@ -1,0 +1,119 @@
+{
+    "timestart": {"days":-90},
+    "timeend": {"days":7},
+    "forecast_timeend": {"days": 0},
+    "time_offset_start": {"hours": 9},
+    "nodes": [
+        {
+            "id": 1,
+            "name": "Gualeguay@RT - PMA - 1D",
+            "series": [
+                {
+                    "series_id": 232,
+                    "tipo": "areal",
+                    "lim_outliers": [
+                        -0.0000001,
+                        200
+                    ],
+                    "comment": "pmad campo interpolado. area_id=2"
+                },
+                {
+                    "series_id": 8,
+                    "tipo": "areal",
+                    "lim_outliers": [
+                        -0.0000001,
+                        200
+                    ],
+                    "comment": "pmad análisis cpc. area_id=2"
+                },
+                {
+                    "series_id": 176,
+                    "tipo": "areal",
+                    "lim_outliers": [
+                        -0.0000001,
+                        200
+                    ],
+                    "comment": "pmad gfs. area_id=2"
+                }
+            ],
+            "time_interval": {
+                "days": 1
+            },
+            "time_offset": null,
+            "output_series_id": null,
+            "adjust_prono": false
+        },
+        {
+            "id": 2,
+            "name": "Gualeguay@RT - ETP - 1D",
+            "series": [
+                {
+                    "series_id": 120,
+                    "tipo": "areal",
+                    "lim_outliers": [
+                        0,
+                        8
+                    ],
+                    "comment": "etp climatológica wm. area_id=2"
+                }
+            ],
+            "time_interval": {
+                "days": 1
+            },
+            "time_offset": null,
+            "interpolation_limit": 6,
+            "output_series_id": null,
+            "adjust_prono": false
+        },
+        {
+            "id": 3,
+            "name": "Gualeguay@RT - SM - 1D",
+            "series": [
+                {
+                    "series_id": 1625,
+                    "tipo": "areal",
+                    "lim_outliers": [
+                        0,
+                        0.99
+                    ],
+                    "comment": "sm smops. area_id=2"
+                }
+            ],
+            "time_interval": {
+                "days": 1
+            },
+            "time_offset": null,
+            "interpolation_limit": 2,
+            "output_series_id": null,
+            "adjust_prono": false
+        },
+        {
+            "id": 4,
+            "name": "Gualeguay@RT - Q - 1D",
+            "series": [
+                {
+                    "series_id": 7806,
+                    "tipo": "puntual",
+                    "lim_outliers": [
+                        0,
+                        5000
+                    ],
+                    "comment": "Q obs Rosario del Tala-RHN (telemétrica) estacion_id=2203"
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31609,
+                    "tipo": "puntual",
+                    "comment": "Q sim diario Rosario del Tala-RHN (telemétrica) estacion_id=2203"
+                }
+            ],
+            "time_interval": {
+                "days": 1
+            },
+            "time_offset": null,
+            "output_series_id": null,
+            "adjust_prono": false
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "name": "gualeguay_rt_dummy",
+    "id": 777,
+    "topology": "data/topologies/gualeguay_rt_dummy.json",
+    "procedures": [
+        {
+            "id": 1,
+            "type": "PQ",
+            "input_nodes": [1,2,3,4],
+            "output_nodes": [4]
+        }
+    ]
+}

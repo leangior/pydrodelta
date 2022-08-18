@@ -1,5 +1,5 @@
 {
-    "$id": "https://alerta.ina.gob.ar/schemas/topology.json",
+    "$id": "https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json",
     "schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Topology",
     "type": "object",
@@ -25,6 +25,14 @@
             "type": "array",
             "items": {
                 "$ref": "#/$defs/Node"
+            }
+        },
+        "analysis": {
+            "description": "analysis actions to perform",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["concatenateProno","uploadData"]
             }
         }
     },
@@ -56,6 +64,20 @@
                         "$ref": "#/$defs/NodeSerieProno"
                     }
                 },
+                "series_output": {
+                    "description": "Output timeseries for the node (as result of analysis)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/NodeSerie"
+                    }
+                }, 
+                "series_sim": {
+                    "description": "Simulation output timeseries for the node (as result of Plan execution)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/NodeSerieProno"
+                    }
+                }, 
                 "time_interval": {
                     "$ref": "#/$defs/TimeInterval"
                 },
@@ -140,6 +162,32 @@
                 },
                 "interpolation_limit": {
                     "type": "number"
+                },
+                "hec_node": {
+                    "type": "object",
+                    "properties": {
+                        "River": {
+                            "type": "string"
+                        },
+                        "Reach":  {
+                            "type": "string"
+                        },
+                        "River_Stat":  {
+                            "type": "integer"
+                        },
+                        "Interval":  {
+                            "type": "string"
+                        },
+                        "CondBorde": {
+                          	"type": "string",
+                            "enum": [
+                                "Stage Hydrograph",
+                                "Flow Hydrograph"
+                            ]
+                        }
+                    },
+                    "required": ["River","Reach","River_Stat","Interval","CondBorde"],
+                    "additionalProperties": false
                 }
             },
             "required": ["id","name","time_interval"]
@@ -149,6 +197,9 @@
             "properties": {
                 "series_id": {
                     "type": "number"
+                },
+                "tipo": {
+                    "$ref": "#/$defs/SeriesTipo"
                 },
                 "lim_outliers": {
                     "type": "array",
@@ -292,6 +343,14 @@
             "items": {
                 "$ref": "#/$defs/Polygon"
             }
+        },
+        "SeriesTipo": {
+            "type": "string",
+            "enum": [
+                "puntual",
+                "areal",
+                "raster"
+            ]
         }
     }
-}
+}	

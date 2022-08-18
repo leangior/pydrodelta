@@ -1,5 +1,4 @@
 {
-    "$schema": "../schemas/topology.json",
     "timestart": {"days":-15},
     "timeend": {"hours":0},
     "forecast_timeend": {"days": 5},
@@ -13,7 +12,7 @@
                 "Reach": "Bajo",
                 "River_Stat": 1151708,
                 "Interval": "1HOUR",
-                "CondBorde": "Folw Hydrograph"
+                "CondBorde": "Flow Hydrograph"
             },
             "series": [
                 {
@@ -98,11 +97,349 @@
                     "adjust": true
                 }
             ],
+            "series_sim": [
+                {
+                    "series_id": 31594
+                },
+                {
+                    "series_id": 31595,
+                    "y_offset": -0.0275
+                }
+            ],
             "time_interval": {
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31555
+            "series_output": [
+                {
+                    "series_id": 31608,
+                    "comment": "NPal H geo 1h"
+                },
+                {
+                    "series_id": 31555,
+                    "y_offset": -0.0275,
+                    "comment": "NPal H de escala 1h"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Salto Grande - Stage hydrograph - 1H",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 1151708,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 78,
+                    "y_offset": -0.5225
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            },
+            "series_sim": [
+                {
+                    "series_id": 31572
+                },
+                {
+                    "series_id": 31604,
+                    "y_offset": 0.5225
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Salto",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 1107130,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 31575,
+                    "y_offset": 1.32
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31573
+                },
+                {
+                    "series_id": 31574,
+                    "y_offset": -1.32
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 5,
+            "name": "Concordia",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 1096641,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 79,
+                    "y_offset": 1.29
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31577
+                },
+                {
+                    "series_id": 31576,
+                    "y_offset": -1.29
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 6,
+            "name": "Concordia",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 1096641,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 1366,
+                    "y_offset": 1.29
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31579
+                },
+                {
+                    "series_id": 31578,
+                    "y_offset": -1.29
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 7,
+            "name": "Colón",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 725598,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 80,
+                    "y_offset": -0.26
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31583
+                },
+                {
+                    "series_id": 31582,
+                    "y_offset": 0.26
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 8,
+            "name": "Paysandu",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 704621,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 7060,
+                    "y_offset": 0.04
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31581
+                },
+                {
+                    "series_id": 31580,
+                    "y_offset": -0.04
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 9,
+            "name": "ConcepUru",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 616397,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 7061,
+                    "y_offset": -0.37
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31584
+                },
+                {
+                    "series_id": 31585,
+                    "y_offset": 0.37
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 10,
+            "name": "ConcepUru",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 616397,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 81,
+                    "y_offset": -0.37
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31586
+                },
+                {
+                    "series_id": 31587,
+                    "y_offset": 0.37
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 11,
+            "name": "FrayBentos",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 326854,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 7062,
+                    "y_offset": -0.14
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31588
+                },
+                {
+                    "series_id": 31589,
+                    "y_offset": 0.14
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 12,
+            "name": "BocaGuale",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 309827,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 3307,
+                    "y_offset": -0.43
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31590
+                },
+                {
+                    "series_id": 31591,
+                    "y_offset": 0.43
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
+        },
+        {
+            "id": 13,
+            "name": "BocaGuale",
+            "hec_node": {
+                "River": "Uruguay",
+                "Reach": "Bajo",
+                "River_Stat": 309827,
+                "Interval": "1HOUR",
+                "CondBorde": "Stage Hydrograph"
+            },
+            "series": [
+                {
+                    "series_id": 84,
+                    "y_offset": -0.43
+                }
+            ],
+            "series_sim": [
+                {
+                    "series_id": 31592
+                },
+                {
+                    "series_id": 31593,
+                    "y_offset": 0.43
+                }
+            ],
+            "time_interval": {
+                "hours": 1
+            }
         }
     ]
 }
