@@ -3,13 +3,21 @@
 módulo generación de análisis de series temporales
 
 - se definen las clases NodeSerie, Node y Topology
-- se define un esquema json para la configuración de la topología (schemas/topology.json)
-- se instancia una clase Topology usando el archivo json de configuración y:
+- se define un esquema json (jsonschema) para validar la configuración de la topología (data/schemas/topology.json)
+- se instancia un objeto de la clase Topology usando el archivo json de configuración y:
 - lee series de entrada de a5 topology.loadData()
-- regulariza las series .regularize()
-- rellena nulos .fillNulls()
-- guarda observaciones en archivo csv o json .saveData()
-- guarda observaciones en a5 .uploadData() 
+- regulariza las series topology.regularize()
+- rellena nulos topology.fillNulls()
+- guarda observaciones en archivo csv o json topology.saveData()
+- guarda observaciones en a5 topology.uploadData() 
+
+módulo simulación
+
+- se definen las clases Plan, Procedure y clases para cada procedimiento específico
+- se define un esquema json (jsonschema) para validar la configuración del plan (data/schemas/plan.json) 
+- se instancia un objeto de la clase Plan usando el archivo de configuración, y:
+- ejecuta el análisis de la topología del plan (generación de condiciones de borde, plan.topology.batchProcessInput())
+- ejecuta secuencialmente los procedimientos (procedure.run() por cada procedure en plan.procedures)
 
 ### Description
 
@@ -48,6 +56,8 @@ extract content into $PROJECT_DIR
 #### python api analysis de series temporales
 
     import pydrodelta.analysis
+    import json
+
     t_config = json.load(open("pydrodelta_config/288_bordes_curados.json"))
     topology = pydrodelta.analysis.Topology(t_config])
     topology.loadData()
@@ -57,6 +67,15 @@ extract content into $PROJECT_DIR
     topology.saveData("bordes_288.csv",pivot=True)
     topology.saveData("bordes_288.json","json")
     topology.uploadData()
+
+#### python api simulation
+
+    import pydrodelta.simulation
+    import json
+
+    plan_config = json.load(open("../data/plans/gualeguay_rt_dummy.json"))
+    plan = pydrodelta.simulation.Plan(plan_config)
+    plan.execute()
 
 #### CLI
 
