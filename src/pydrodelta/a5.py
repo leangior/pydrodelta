@@ -1257,6 +1257,24 @@ class Observacion():
             
 # CRUD
 
+def readSeries(tipo="puntual",series_id=None,area_id=None,estacion_id=None,escena_id=None,var_id=None,proc_id=None,unit_id=None,fuentes_id=None,tabla=None,id_externo=None,geom=None,include_geom=None,no_metadata=None,date_range_before=None,date_range_after=None,getMonthlyStats=None,getStats=None,getPercentiles=None,percentil=None,use_proxy=False):
+    if date_range_before is not None:
+        date_range_before = date_range_before if isinstance(date_range_before,str) else date_range_before.isoformat()
+    if date_range_after is not None:
+        date_range_after =date_range_after if isinstance(date_range_after,str) else date_range_after.isoformat()
+    params = locals()
+    del params["use_proxy"]
+    del params["tipo"]
+    response = requests.get("%s/obs/%s/series" % (config["api"]["url"], tipo),
+        params = params,
+        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
+        proxies = config["proxy_dict"] if use_proxy else None
+    )
+    if response.status_code != 200:
+        raise Exception("request failed: %s" % response.text)
+    json_response = response.json()
+    return json_response
+
 def readSerie(series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=False):
     params = {}
     if timestart is not None and timeend is not None:
