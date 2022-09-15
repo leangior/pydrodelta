@@ -87,8 +87,8 @@ class NodeSerie():
             data["series_id"] = self.series_id
             return data.to_csv()
         return self.data.to_csv()
-    def toList(self,include_series_id=False,timeSupport=None,remove_nulls=False):
-        data = self.data
+    def toList(self,include_series_id=False,timeSupport=None,remove_nulls=False,max_obs_date:datetime=None):
+        data = self.data[self.data.index <= max_obs_date] if max_obs_date is not None else self.data.copy(deep=True)
         data["timestart"] = data.index
         data["timeend"] = [x + timeSupport for x in data["timestart"]] if timeSupport is not None else data["timestart"]
         data["timestart"] = [x.isoformat() for x in data["timestart"]]
@@ -146,6 +146,10 @@ class DerivedNodeSerie:
     def derive(self,keep_index=True):
         if self.derived_from is not None:
             logging.debug("Deriving %i from %s" % (self.series_id, self.derived_from.origin.name))
+            if not len(self.derived_from.origin.data):
+                logging.warn("No data found to derive from origin. Skipping derived node")
+                self.data = a5.createEmptyObsDataFrame()
+                return
             self.data = self.derived_from.origin.data[["valor","tag"]] # self.derived_from.origin.series[0].data[["valor",]]
             if isinstance(self.derived_from.x_offset,timedelta):
                 self.data["valor"] = self.data["valor"] + self.derived_from.y_offset
@@ -154,8 +158,14 @@ class DerivedNodeSerie:
             else:
                 self.data["valor"] = self.data["valor"].shift(self.derived_from.x_offset, axis = 0) + self.derived_from.y_offset
             self.data["tag"] = self.data.apply(lambda row: self.deriveTag(row,"tag"),axis=1) #["derived" if x is None else "%s,derived" % x for x in self.data.tag]
+            if hasattr(self.derived_from.origin,"max_obs_date"):
+                self.max_obs_date = self.derived_from.origin.max_obs_date
         elif self.interpolated_from is not None:
             logging.debug("Interpolating %i from %s and %s" % (self.series_id, self.interpolated_from.origin_1.name, self.interpolated_from.origin_2.name))
+            if not len(self.interpolated_from.origin_1.data) or not len(self.interpolated_from.origin_2.data):
+                logging.warn("No data found to derive from origin. Skipping derived node")
+                self.data = a5.createEmptyObsDataFrame()
+                return
             self.data = self.interpolated_from.origin_1.data[["valor","tag"]] # self.interpolated_from.origin_1.series[0].data[["valor",]]
             self.data = self.data.join(self.interpolated_from.origin_2.data[["valor","tag"]],how='left',rsuffix="_other") # self.data.join(self.interpolated_from.origin_2.series[0].data[["valor",]],how='left',rsuffix="_other")
             self.data["valor"] = self.data["valor"] * (1 - self.interpolated_from.interpolation_coefficient) + self.data["valor_other"] * self.interpolated_from.interpolation_coefficient
@@ -169,6 +179,8 @@ class DerivedNodeSerie:
                     self.data.index = self.data.apply(lambda row: self.deriveOffsetIndex(row,self.interpolated_from.x_offset),axis=1) # for x in self.data.index]
             else:
                 self.data[["valor","tag"]] = self.data[["valor","tag"]].shift(self.interpolated_from.x_offset, axis = 0)    
+            if hasattr(self.interpolated_from.origin_1,"max_obs_date"):
+                self.max_obs_date = self.interpolated_from.origin_1.max_obs_date
             
     def toCSV(self,include_series_id=False):
         if include_series_id:
@@ -300,7 +312,8 @@ class Node:
                 data.loc[:,"series_id"] = serie.series_id
                 list.extend(data.to_dict(orient="records"))
             else:
-                list.append({"series_id": serie.series_id, "observaciones": data.to_dict(orient="records")})
+                series_table = "series" if serie.type == "puntual" else "series_areal" if serie.type == "areal" else "series_rast" if serie.type == "raster" else "series"
+                list.append({"series_id": serie.series_id, "series_table": series_table, "observaciones": data.to_dict(orient="records")})
         return list
     def adjust(self,plot=True):
         truth_data = self.series[self.adjust_from["truth"]].data
@@ -324,7 +337,7 @@ class Node:
             if isinstance(serie,NodeSerie) and serie.moving_average is not None:
                 serie.applyMovingAverage()
     def adjustProno(self):
-        if not self.series_prono or not len(self.series_prono) or not len(self.series):
+        if not self.series_prono or not len(self.series_prono) or not len(self.series) or self.series[0].data is None:
             return
         truth_data = self.series[0].data
         for serie_prono in [x for x in self.series_prono if x.adjust]:
@@ -353,7 +366,7 @@ class Node:
             for serie in self.series_output:
                 serie.data = self.data[["valor","tag"]]
                 serie.applyOffset()
-    def uploadData(self):
+    def uploadData(self,include_prono=False):
         """
         Uploads series_output to a5 API
         """
@@ -362,7 +375,7 @@ class Node:
                 self.setOutputData()
             obs_created = []
             for serie in self.series_output:
-                obs_list = serie.toList(remove_nulls=True) # include_series_id=True)
+                obs_list = serie.toList(remove_nulls=True,max_obs_date=None if include_prono else self.max_obs_date if hasattr(self,"max_obs_date") else None) # include_series_id=True)
                 try:
                     created = a5.createObservaciones(obs_list,series_id=serie.series_id)
                     obs_created.extend(created)
@@ -425,9 +438,9 @@ class Node:
         """
         if self.series_prono is not None and len(self.series_prono) and len(self.series_prono[0].data):
             prono_data = self.series_prono[0].data[["valor","tag"]]
+            self.max_obs_date = self.data[~pandas.isna(self.data["valor"])].index.max()
             if ignore_warmup: #self.forecast_timeend is not None and ignore_warmup:
-                max_obs_date = self.data[~pandas.isna(self.data["valor"])].index.max()
-                prono_data = prono_data[prono_data.index > max_obs_date]
+                prono_data = prono_data[prono_data.index > self.max_obs_date]
             data = util.serieFillNulls(self.data,prono_data,extend=True,tag_column="tag")
             if inline:
                 self.data = data
@@ -533,7 +546,7 @@ class ObservedNode(Node):
         else:
             return data
 
-class derivedNode(Node):
+class DerivedNode(Node):
     def __init__(self,params,timestart,timeend,parent,forecast_timeend=None,plan=None,time_offset=None):
         super().__init__(params,timestart,timeend,forecast_timeend,plan=plan,time_offset=time_offset)
         self.series = []
@@ -553,6 +566,8 @@ class derivedNode(Node):
         self.series[0].derive()
         self.data = self.series[0].data
         self.original_data = self.data.copy(deep=True)
+        if hasattr(self.series[0],"max_obs_date"):
+            self.max_obs_date = self.series[0].max_obs_date
 
 class DerivedOrigin:
     def __init__(self,params,topology=None):
@@ -607,12 +622,15 @@ class Topology():
         self.time_offset_end = util.interval2timedelta(params["time_offset_end"]) if "time_offset_end" in params else util.interval2timedelta(params["time_offset"]) if "time_offset" in params else timedelta(hours=datetime.now().hour)
         self.timestart = self.timestart.replace(hour=0,minute=0,second=0,microsecond=0) + self.time_offset_start
         self.timeend = self.timeend.replace(hour=0,minute=0,second=0,microsecond=0) + self.time_offset_end
+        if self.timestart >= self.timeend:
+            raise("Bad timestart, timeend parameters. timestart must be before timeend")
         self.interpolation_limit = None if "interpolation_limit" not in params else util.interval2timedelta(params["interpolation_limit"]) if isinstance(params["interpolation_limit"],dict) else params["interpolation_limit"]
         self.nodes = []
         for x in params["nodes"]:
-            self.nodes.append(derivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in x and x["derived"] == True else ObservedNode(x,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
+            self.nodes.append(DerivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in x and x["derived"] == True else ObservedNode(x,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
+        self.cal_id = params["cal_id"] if "cal_id" in params else None
     def addNode(self,node,plan=None):
-        self.nodes.append(derivedNode(node,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in node and node["derived"] == True else ObservedNode(node,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
+        self.nodes.append(DerivedNode(node,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in node and node["derived"] == True else ObservedNode(node,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
     def batchProcessInput(self,include_prono=False):
         logging.debug("loadData")
         self.loadData()
@@ -685,7 +703,7 @@ class Topology():
                 node.fillNulls()
     def derive(self):
         for node in self.nodes:
-            if isinstance(node,derivedNode):
+            if isinstance(node,DerivedNode):
                 node.derive()
     def adjust(self):
         for node in self.nodes:
@@ -787,6 +805,22 @@ class Topology():
             obs_created = node.uploadData()
             created.extend(obs_created)
         return created
+    def uploadDataAsProno(self):
+        if self.cal_id is None:
+            raise Exception("Missing required parameter cal_id")
+        prono = {
+            "cal_id": self.cal_id,
+            "forecast_date": self.timeend.isoformat(),
+            "series": []
+        }
+        for node in self.nodes:
+            serieslist = node.outputToList(flatten=False)
+            for serie in serieslist:
+                serie["pronosticos"] = serie["observaciones"]
+                del serie["observaciones"]
+            prono["series"].extend(serieslist)
+        return a5.createCorrida(prono)
+
     def pivotData(self,include_tag=True,use_output_series_id=True,use_node_id=False,nodes=None):
         if nodes is None:
             nodes = self.nodes
@@ -815,13 +849,20 @@ class Topology():
             data = node_data if i == 1 else pandas.concat([data,node_data],axis=1)
         # data = data.replace({np.NaN:None})
         return data
-    def plotNodes(self):
+    def plotNodes(self,timestart:datetime=None,timeend:datetime=None):
         for node in self.nodes:
             # if hasattr(node.series[0],"data"):
             if node.data is not None and len(node.data):
                 data = node.data.reset_index() # .plot(y="valor")
+                if timestart is not None:
+                    data = data[data["timestart"] >= timestart]
+                if timeend is not None:
+                    data = data[data["timestart"] <= timeend]
                 # data = node.series[0].data.reset_index() # .plot(y="valor")
-                data.plot(kind="scatter",x="timestart",y="valor",title=node.name)
+                ax = data.plot(kind="scatter",x="timestart",y="valor",title=node.name, figsize=(20,8),grid=True)
+                # data.plot.line(x="timestart",y="valor",ax=ax)
+                if hasattr(node,"max_obs_date"):
+                    ax.axvline(node.max_obs_date, color='k', linestyle='--')
         plt.show()
     # def __iter__(self):
     #     return BordeSetIterator(self)

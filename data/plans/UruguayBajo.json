@@ -1,0 +1,8 @@
+{
+    "$schema": "../schemas/hec-ras-plan.json",
+    "workspace": "HIDROURU_4D",
+    "model_path": "HIDROURU_4D/Modelo/",
+    "initial_load": false,
+    "project_name": "UruguayBajo",
+    "topology_file": "../topologies/bajo_uruguay.json"
+}

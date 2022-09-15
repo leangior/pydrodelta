@@ -1,7 +1,7 @@
 {
     "$schema": "../schemas/topology.json",
-    "timestart": "2022-06-01T03:00:00.000Z",
-    "timeend": "2022-07-10T03:00:00.000Z",
+    "timestart": {"days": -35},
+    "timeend": {"days": 5},
     "nodes": [
         {
             "id": 1,
@@ -9,26 +9,7 @@
             "time_interval": {
                 "hours": 1
             },
-            "adjust_from": {
-                "truth": 1,
-                "sim": 0,
-                "method": "lfit"
-            },
             "series": [
-                {
-                    "series_id": 29534,
-                    "lim_outliers": [
-                        -1,
-                        5
-                    ],
-                    "lim_jump": 0.958,
-                    "x_offset": {
-                        "hours": 1
-                    },
-                    "y_offset": 0,
-                    "comment": "Paraná de las Palmas @ Zárate - H sim hidrodelta",
-                    "cal_id": 288
-                },
                 {
                     "series_id": 29437,
                     "lim_outliers": [
@@ -39,6 +20,18 @@
                     "x_offset": 0,
                     "y_offset": 0,
                     "comment": "Paraná de las Palmas @ Zárate - H obs SAT2"
+                }
+            ],
+            "series_prono": [
+                {
+                    "series_id": 29534,
+                    "x_offset": {
+                        "hours": 1
+                    },
+                    "y_offset": 0,
+                    "comment": "Paraná de las Palmas @ Zárate - H sim hidrodelta",
+                    "cal_id": 288,
+                    "adjust": true
                 }
             ],
             "plot_params": {
@@ -61,26 +54,7 @@
             "time_interval": {
                 "hours": 1
             },
-            "adjust_from": {
-                "truth": 1,
-                "sim": 0,
-                "method": "lfit"
-            },
             "series": [
-                {
-                    "series_id": 3403,
-                    "lim_outliers": [
-                        -1,
-                        5
-                    ],
-                    "lim_jump": 0.958,
-                    "x_offset": {
-                        "hours": 1
-                    },
-                    "y_offset": 0,
-                    "comment": "Paraná de las Palmas @ Atucha - H sim hidrodelta",
-                    "cal_id": 288
-                },
                 {
                     "series_id": 151,
                     "lim_outliers": [
@@ -91,6 +65,18 @@
                     "x_offset": 0,
                     "y_offset": 0,
                     "comment": "Paraná de las Palmas @ Atucha - H obs fdx"
+                }
+            ],
+            "series_prono": [
+                {
+                    "series_id": 3403,
+                    "x_offset": {
+                        "hours": 1
+                    },
+                    "y_offset": 0,
+                    "comment": "Paraná de las Palmas @ Atucha - H sim hidrodelta",
+                    "cal_id": 288,
+                    "adjust": true
                 }
             ],
             "plot_params": {
@@ -122,6 +108,19 @@
             "output_series_id": 3405,
             "series": [
                 {
+                    "series_id": 41,
+                    "lim_outliers": [
+                        -1,
+                        4
+                    ],
+                    "lim_jump": 0.958,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "comment": "Paraná de las Palmas @ Campana - H obs PNA"
+                }
+            ],
+            "series_prono": [
+                {
                     "series_id": 3405,
                     "lim_outliers": [
                         -1,
@@ -132,18 +131,9 @@
                         "hours": 1
                     },
                     "y_offset": 0.5,
-                    "comment": "Paraná de las Palmas @ Campana - H sim"
-                },
-                {
-                    "series_id": 41,
-                    "lim_outliers": [
-                        -1,
-                        4
-                    ],
-                    "lim_jump": 0.958,
-                    "x_offset": 0,
-                    "y_offset": 0,
-                    "comment": "Paraná de las Palmas @ Campana - H obs PNA"
+                    "comment": "Paraná de las Palmas @ Campana - H sim",
+                    "cal_id": 288,
+                    "adjust": true
                 }
             ],
             "plot_params": {

@@ -31,6 +31,5 @@ if __name__ == "__main__":
         topology.saveData(args.json,format="json",pivot=args.pivot)
     if args.upload:
         uploaded = topology.uploadData()
-    """
-    TODO: output concatenateProno
-    """
+        if args.include_prono:
+            uploaded_prono = topology.uploadDataAsProno()

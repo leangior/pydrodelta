@@ -1,14 +1,15 @@
 {
     "$schema": "../schemas/topology.json",
     "timestart": {
-        "days": -15
+        "days": -45
     },
     "timeend": {
-        "hours": -1
+        "hours": 1
     },
     "forecast_timeend": {
-        "days": 4
+        "days": 15
     },
+    "cal_id": 487,
     "nodes": [
         {
             "id": 1,
@@ -83,13 +84,27 @@
                     "x_offset": 0,
                     "y_offset": -0.53,
                     "comment": "san fernando H prono regre",
-                    "cal_id": 432
+                    "cal_id": 432,
+                    "adjust": true
                 }
             ],
             "time_interval": {
                 "hours": 1
             },
-            "output_series_id": 31554
+            "series_output": [
+                {
+                    "series_id": 31554,
+                    "x_offset": 0,
+                    "y_offset": 0.53,
+                    "comment": "san fernando altura de escala horaria analisis"
+                },
+                {
+                    "series_id": 31606,
+                    "x_offset": 0,
+                    "y_offset": 0,
+                    "comment": "san fernando altura geométrica horaria analisis"
+                }
+            ]
         },
         {
             "id": 2,
@@ -118,13 +133,18 @@
                     "comment": "LUJAN @ JAUREGUI QmedDiaria DPH (viejo)"
                 }
             ],
+            "series_prono": [
+                {
+                    "series_id": 1470,
+                    "cal_id": 36
+                }
+            ],
             "time_interval": {
                 "days": 1
             },
             "time_offset": {
                 "hours": 0
             },
-            "fill_value": 50,
             "output_series_id": 31530
         },
         {
@@ -165,13 +185,28 @@
                     "comment": "Diamante prefectura H media diaria"
                 }
             ],
+            "series_prono": [{
+                "series_id": 3408,
+                "cal_id": 289
+            }],
             "time_interval": {
                 "days": 1
             },
             "time_offset": {
                 "hours": 0
             },
-            "output_series_id": 31525
+            "series_output": [
+                {
+                    "series_id": 31525,
+                    "comment": "Paraná h de escala 1d"
+                },
+                {
+                    "series_id": 31607, 
+                    "y_offset": 9.432,
+                    "comment": "Paraná h geo 1d"
+                }                
+            ],
+            "interpolation_limit": 4
         },
         {
             "id": 4,
@@ -209,14 +244,25 @@
                     "x_offset": 0,
                     "y_offset": 0.0275,
                     "comment": "N Palmira prono regre",
-                    "cal_id": 433
+                    "cal_id": 433,
+                    "adjust": true
                 }
             ],
             "time_interval": {
                 "hours": 1
             },
             "time_offset": null,
-            "output_series_id": 31555
+            "series_output": [
+                {
+                    "series_id": 31608,
+                    "comment": "NPal H geo 1h"
+                },
+                {
+                    "series_id": 31555,
+                    "y_offset": -0.0275,
+                    "comment": "NPal H de escala 1h"
+                }
+            ]
         },
         {
             "id": 5,
@@ -409,11 +455,14 @@
                     "comment": "GUALEGUAY @ RTALA Qinst SAT2 (RHN)"
                 }
             ],
+            "series_prono": [{
+                "series_id":1505,
+                "cal_id": 69
+            }],
             "time_interval": {
                 "days": 1
             },
             "time_offset": null,
-            "fill_value": 50,
             "output_series_id": 31570
         },
         {
