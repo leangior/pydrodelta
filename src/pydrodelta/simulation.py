@@ -7,9 +7,10 @@ import pydrodelta.util as util
 import logging
 import pydrodelta.hecras as hecras
 import os
+import yaml
 
-config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
-config = json.load(config_file)
+config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
+config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
 
 logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
@@ -17,8 +18,8 @@ logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filen
 
 
 schemas = {}
-plan_schema = open("%s/data/schemas/plan.json" % os.environ["PYDRODELTA_DIR"])
-schemas["plan"] = json.load(plan_schema)
+plan_schema = open("%s/data/schemas/plan.yml" % os.environ["PYDRODELTA_DIR"])
+schemas["plan"] = yaml.load(plan_schema,yaml.CLoader)
 
 
 class Plan():
@@ -31,7 +32,7 @@ class Plan():
         else:
             topology_file_path = os.path.join(os.environ["PYDRODELTA_DIR"],params["topology"])
             f = open(topology_file_path)
-            self.topology = analysis.Topology(json.load(f),plan=self)
+            self.topology = analysis.Topology(yaml.load(f,yaml.CLoader),plan=self)
             f.close()
         self.procedures = [createProcedure(x,self) for x in params["procedures"]]
     def execute(self,include_prono=True):
@@ -174,10 +175,15 @@ class HecRasProcedure(Procedure):
         super().__init__(params,plan)
         hecras.createHecRasProcedure(self,params,plan)
 
+class LinearProcedure(Procedure):
+    def __init__(self,params,plan):
+        super().__init__(params,plan)
+
 procedureClassDict = {
     "QQ": QQProcedure,
     "PQ": PQProcedure,
     "Mem": MemProcedure,
-    "HecRas":  HecRasProcedure
+    "HecRas":  HecRasProcedure,
+    "Linear": LinearProcedure
 }
 

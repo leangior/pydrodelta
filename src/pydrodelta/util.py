@@ -8,6 +8,8 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 import logging
+import matplotlib.dates as mdates
+from matplotlib.dates import DateFormatter
 
 def interval2timedelta(interval):
     days = 0
@@ -345,6 +347,136 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     logging.debug('Coefficients B0: %.5f, coefficients: %.5f, Mean squared error: %.5f, r2_score: %.5f' % (lr.intercept_, lr.coef_, mse, coefDet))
     train['Error_pred'] =  train['Y_predictions']  - train[var_obj]
     quant_Err = train['Error_pred'].quantile([.001,.05,.95,.999])
-    
     return lr,quant_Err,r2,coef,intercept
     
+def plot_prono(obs_df,sim_df,output_file,title=None,ydisplay=1,xytext=(-300,-200),ylim=(0,2.5),markersize=None,text_xoffset=(-8,-8),prono_label='forecasted',obs_label='observed',extraObs=None,extraObsLabel='observed 2', forecast_date=None, errorBand=None,obsLine=False,station_name="Station",thresholds={}, datum=0,footnote=None,tz="America/Argentina/Buenos_Aires",figsize=(14,12),errorBandLabel='error band',prono_annotation='forecast',obs_annotation='past',forecast_date_annotation='forecast date',x_label='date',y_label='value',datum_template_string=None,title_template_string="forecast at %s"):
+    errorBandLabel = "error band" if errorBandLabel is None else errorBandLabel
+    tz = "America/Argentina/Buenos_Aires" if tz is None else tz
+    prono_label='forecasted' if prono_label is None else prono_label
+    obs_annotation='past' if obs_annotation is None else obs_annotation
+    station_name="Station" if station_name is None else station_name
+    prono_annotation='forecast' if prono_annotation is None else prono_annotation
+    forecast_date_annotation='forecast date' if forecast_date_annotation is None else forecast_date_annotation
+    title_template_string="forecast at %s" if title_template_string is None else title_template_string
+    x_label='date' if x_label is None else x_label
+    y_label = 'value' if y_label is None else y_label
+    sim_df.index = sim_df.index.tz_convert(tz=tz)
+    if not isinstance(obs_df,type(None)):
+        obs_df.index = obs_df.index.tz_convert(tz=tz)
+        # print(df_obs.index)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(1, 1, 1)
+    if title is not None:
+        ax.title(title)
+    ax.plot(sim_df.index, sim_df['valor'], '-',color='b',label=prono_label,linewidth=3)
+    if not isinstance(obs_df, type(None)):
+        ax.plot(obs_df.index, obs_df['valor'],'o',color='k',label=obs_label,linewidth=3)
+        if obsLine:
+            ax.plot(obs_df.index, obs_df['valor'],'-',color='k',linewidth=1,markersize=markersize)
+    if not isinstance(extraObs,type(None)):
+        extraObs.index = extraObs.index.tz_convert(tz)
+        ax.plot(extraObs.index, extraObs['valor'],'o',color='grey',label=extraObsLabel,linewidth=3,alpha=0.5)
+        ax.plot(extraObs.index, extraObs['valor'],'-',color='grey',linewidth=1,alpha=0.5)
+    if errorBand is not None:
+        ax.plot(sim_df.index, sim_df[errorBand[0]],'-',color='k',linewidth=0.5,alpha=0.75,label='_nolegend_')
+        ax.plot(sim_df.index, sim_df[errorBand[1]],'-',color='k',linewidth=0.5,alpha=0.75,label='_nolegend_')
+        ax.fill_between(sim_df.index,sim_df[errorBand[0]], sim_df[errorBand[1]],alpha=0.1,label=errorBandLabel)
+    # Lineas: 1 , 1.5 y 2 mts
+    xmin=sim_df.index.min()
+    xmax=sim_df.index.max()
+    # Niveles alerta
+    if thresholds.get("aguas_bajas"):
+        plt.hlines(thresholds["aguas_bajas"], xmin, xmax, colors='y', linestyles='-.', label='Aguas Bajas',linewidth=1.5)
+    if thresholds.get("alerta"):
+        plt.hlines(thresholds["alerta"], xmin, xmax, colors='y', linestyles='-.', label='Alerta',linewidth=1.5)
+    if thresholds.get("evacuacion"):
+        plt.hlines(thresholds["evacuacion"], xmin, xmax, colors='r', linestyles='-.', label='Evacuación',linewidth=1.5)
+    # fecha emision
+    if forecast_date:
+        if forecast_date.tzinfo is not None and forecast_date.tzinfo.utcoffset(forecast_date) is not None:
+            ahora = forecast_date
+        else:
+            ahora = localtz.localize(forecast_date)
+    elif not isinstance(obs_df, type(None)):
+        ahora = obs_df.index.max()
+    else: 
+        ahora = localtz.localize(datetime.now())
+    plt.axvline(x=ahora,color="black", linestyle="--",linewidth=2)#,label='Fecha de emisión')
+    bbox = dict(boxstyle="round", fc="0.7")
+    arrowprops = dict(
+        arrowstyle="->",
+        connectionstyle="angle,angleA=0,angleB=90,rad=10")
+    offset = 10
+    #xycoords='figure pixels',
+    xdisplay = ahora + timedelta(days=1.0)
+    ax.annotate(prono_annotation,
+        xy=(xdisplay, ydisplay), xytext=(text_xoffset[0]*offset, -offset), textcoords='offset points',
+        bbox=bbox, fontsize=18)#arrowprops=arrowprops
+    xdisplay = ahora - timedelta(days=2)
+    ax.annotate(obs_annotation,
+        xy=(xdisplay, ydisplay), xytext=(text_xoffset[1]*offset, -offset), textcoords='offset points',
+        bbox=bbox, fontsize=18)
+    ax.annotate(forecast_date_annotation,
+        xy=(ahora, ylim[0]+0.05*(ylim[1]-ylim[0])),fontsize=15, xytext=(ahora+timedelta(days=0.3), ylim[0]+0.1*(ylim[1]-ylim[0])), arrowprops=dict(facecolor='black',shrink=0.05))
+    fig.subplots_adjust(bottom=0.2,right=0.8)
+    if footnote is not None:
+        plt.figtext(0,0,footnote,fontsize=12,ha="left")
+    if datum is not None and datum_template_string is not None:
+        plt.figtext(0,0,datum_template_string % (station_name, str(round(datum+0.53,2)), str(round(datum,2))),fontsize=12,ha="left")
+    if ylim:
+        ax.set_ylim(ylim[0],ylim[1])
+    ax.set_xlim(xmin,xmax)
+    ax.tick_params(labeltop=False, labelright=True)
+    plt.grid(True, which='both', color='0.75', linestyle='-.',linewidth=0.5)
+    plt.tick_params(axis='both', labelsize=16)
+    plt.xlabel(x_label, size=16)
+    plt.ylabel(y_label, size=20)
+    plt.legend(prop={'size':18},loc=2,ncol=1 )
+    plt.title(title if title is not None else title_template_string % station_name,fontsize=20)
+    #### TABLA
+    h_resumen = [0,6,12,18]
+    df_prono = sim_df[sim_df.index > ahora ].copy()
+    df_prono['Hora'] = df_prono.index.hour
+    df_prono['Dia'] = df_prono.index.day
+    df_prono = df_prono[df_prono['Hora'].isin(h_resumen)].copy()
+    df_prono = df_prono[df_prono['valor'].notnull()].copy()
+    #print(df_prono)
+    df_prono['Y_predic'] = df_prono['valor'].round(2)
+    df_prono['Hora'] = df_prono['Hora'].astype(str)
+    df_prono['Hora'] = df_prono['Hora'].replace('0', '00')
+    df_prono['Hora'] = df_prono['Hora'].replace('6', '06')
+    df_prono['Dia'] = df_prono['Dia'].astype(str)
+    df_prono['Fechap'] = df_prono['Dia']+' '+df_prono['Hora']+'hrs'
+    df_prono = df_prono[['Fechap','Y_predic',]]
+    #print(df_prono)
+    cell_text = []
+    for row in range(len(df_prono)):
+        cell_text.append(df_prono.iloc[row])
+        #print(cell_text)
+    columns = ('Fecha','Nivel',)
+    table = plt.table(cellText=cell_text,
+                      colLabels=columns,
+                      bbox = (1.08, 0, 0.2, 0.5))
+    table.set_fontsize(12)
+    #table.scale(2.5, 2.5)  # may help
+    date_form = DateFormatter("%H hrs \n %d-%b",tz=sim_df.index.tz)
+    ax.xaxis.set_major_formatter(date_form)
+    ax.xaxis.set_minor_locator(mdates.HourLocator((3,9,15,21,)))
+    ## FRANJAS VERTICALES
+    start_0hrs = sim_df.index.min().date()
+    end_0hrs = (sim_df.index.max() + timedelta(hours=12)).date()
+    list0hrs = pandas.date_range(start_0hrs,end_0hrs)
+    i = 1
+    while i < len(list0hrs):
+        ax.axvspan(list0hrs[i-1] + timedelta(hours=3), list0hrs[i] + timedelta(hours=3), alpha=0.1, color='grey')
+        i=i+2
+    plt.savefig(output_file, format='png')
+    plt.close()
+
+def getParamOrDefaultTo(param_name:str,value,param_set:dict,default=None):
+    if value is not None:
+        return value
+    elif param_set is not None and param_name in param_set:
+        return param_set[param_name]
+    else:
+        return default

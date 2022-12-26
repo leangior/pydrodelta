@@ -1,7 +1,7 @@
 import src.pydrodelta.analysis as analysis
-import json
 import logging
 import sys
+import yaml
 
 if __name__ == "__main__":
     import argparse
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
         handler.setFormatter(formatter)
         root.addHandler(handler)
-    t_config = json.load(open(args.config_file))
+    t_config = yaml.load(open(args.config_file),yaml.CLoader)
     topology = analysis.Topology(t_config)
     topology.batchProcessInput(include_prono=args.include_prono)
     if args.csv is not None:

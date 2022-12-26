@@ -1,0 +1,11 @@
+.vscode
+bin
+build
+lib
+lib64
+myenv
+modelo_uruguay
+tmp
+share
+__pycache__
+src/pydrodelta.egg-info

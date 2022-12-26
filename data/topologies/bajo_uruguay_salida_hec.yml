@@ -1,0 +1,199 @@
+---
+timestart:
+  days: -15
+timeend:
+  hours: 0
+forecast_timeend:
+  days: 4
+time_offset_start:
+  hours: 0
+interpolation_limit:
+  minutes: 30 
+plot_params:
+  figsize: [14,12]
+  forecast_date_annotation: fecha de emisión
+  errorBandLabel: Banda de error
+  prono_annotation: Pronóstico a 4 días
+  obs_annotation: Días pasados
+  x_label: Fecha
+  y_label: Nivel [m] Referido al cero local (*)
+  datum_template_string: "          (*) El cero de la escala de %s corresponde a %s mMOP / %s mIGN \n"
+  title_template_string: "Previsión de niveles a corto plazo en %s"
+  obs_label: Nivel observado
+  prono_label: Nivel pronosticado
+report_file: data/reports/bajo_uruguay_salida_hec.json
+nodes:
+- id: 1
+  name: Concordia
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 1096641
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 31601
+    lim_outliers: [-1, 10]
+  series_sim:
+  - series_id: 31578
+  - series_id: 31579
+    y_offset: 1.29
+  series_prono:
+  - series_id: 31578
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Puerto Concordia
+      output_file: data/plots/bajo_uruguay/Prono_Concordia.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1
+- id: 2
+  name: Colón
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 725598
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 80
+    lim_outliers: [-1, 10]
+  series_sim:
+  - series_id: 31582
+  - series_id: 31583
+    y_offset: -0.26
+  series_prono:
+  - series_id: 31582
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Colón
+      output_file: data/plots/bajo_uruguay/Prono_Colon.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1
+- id: 3
+  name: Paysandu
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 704621
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 31599
+    lim_outliers: [-1, 10]
+  series_sim:
+  - series_id: 31580
+  - series_id: 31581
+    y_offset: 0.04
+  series_prono:
+  - series_id: 31580
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Paysandú
+      output_file: data/plots/bajo_uruguay/Prono_Paysandu.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1
+- id: 4
+  name: ConcepUru
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 616397
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 81
+    lim_outliers: [-1, 10]
+  series_sim:
+  - series_id: 31585
+  - series_id: 31584
+    y_offset: -0.37
+  series_prono:
+  - series_id: 31585
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Concepción del Uruguay
+      output_file: data/plots/bajo_uruguay/Prono_ConcepUru.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1
+- id: 5
+  name: FrayBentos
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 326854
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 31597
+    lim_outliers: [-1, 6]
+  series_sim:
+  - series_id: 31589
+  - series_id: 31588
+    y_offset: -0.14
+  series_prono:
+  - series_id: 31589
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Concepción del Uruguay
+      output_file: data/plots/bajo_uruguay/Prono_ConcepUru.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1
+- id: 6
+  name: BocaGuale
+  hec_node:
+    River: Uruguay
+    Reach: Bajo
+    River_Stat: 309827
+    Interval: 1HOUR
+    CondBorde: Stage Hydrograph
+  series:
+  - series_id: 31596
+    lim_outliers: [-1, 6]
+  series_sim:
+  - series_id: 31591
+  - series_id: 31590
+    y_offset: -0.43
+  series_prono:
+  - series_id: 31591
+    cal_id: 486
+    comment: hec ras bajo Uruguay
+    adjust: true
+    plot_params:
+      ylim: [-1,3.5]
+      nombre_estacion: Gualeguaychú
+      output_file: data/plots/bajo_uruguay/Prono_Guale.png
+      ydisplay: -0.75
+      text_xoffset: [-2,-8]
+      xytext: [-320,-200]
+  time_interval:
+    hours: 1

@@ -8,12 +8,16 @@ import logging
 import pandas
 import jsonschema
 import os
+import yaml 
+import dateutil.parser
 
-schema = open("%s/data/schemas/topology.json" % os.environ["PYDRODELTA_DIR"])
-schema = json.load(schema)
+#schema = open("%s/data/schemas/topology.json" % os.environ["PYDRODELTA_DIR"])
+schema = open("%s/data/schemas/topology.yml" % os.environ["PYDRODELTA_DIR"])
+schema = yaml.load(schema,yaml.CLoader)
 
-config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
-config = json.load(config_file)
+# config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
+config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
+config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
 
 logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
@@ -29,15 +33,31 @@ class NodeSerie():
         self.y_offset = params["y_offset"]  if "y_offset" in params else 0 # bias
         self.moving_average = util.interval2timedelta(params["moving_average"]) if "moving_average" in params else None
         self.data = None
+        self.metadata = None
+        self.outliers_data = None
+        self.jumps_data = None
     def loadData(self,timestart,timeend):
         logging.debug("Load data for series_id: %i" % (self.series_id))
-        self.data = a5.readSerie(self.series_id,timestart,timeend,tipo=self.type)
-        if len(self.data["observaciones"]):
-            self.data = a5.observacionesListToDataFrame(self.data["observaciones"],tag="obs")
+        self.metadata = a5.readSerie(self.series_id,timestart,timeend,tipo=self.type)
+        if len(self.metadata["observaciones"]):
+            self.data = a5.observacionesListToDataFrame(self.metadata["observaciones"],tag="obs")
         else:
             logging.warning("No data found for series_id=%i" % self.series_id)
             self.data = a5.createEmptyObsDataFrame(extra_columns={"tag":"str"})
         self.original_data = self.data.copy(deep=True)
+        del self.metadata["observaciones"]
+    def getThresholds(self):
+        if self.metadata is None:
+            logging.warn("Metadata missing, unable to set thesholds")
+            return None
+        thresholds = {}
+        if self.metadata["estacion"]["nivel_alerta"]:
+            thresholds["nivel_alerta"] = self.metadata["estacion"]["nivel_alerta"]
+        if self.metadata["estacion"]["nivel_evacuacion"]:
+            thresholds["nivel_evacuacion"] = self.metadata["estacion"]["nivel_evacuacion"]
+        if self.metadata["estacion"]["nivel_aguas_bajas"]:
+            thresholds["nivel_aguas_bajas"] = self.metadata["estacion"]["nivel_aguas_bajas"]
+        return thresholds
     def removeOutliers(self):
         if self.lim_outliers is None:
             return False
@@ -112,18 +132,38 @@ class NodeSerieProno(NodeSerie):
         self.cor_id = None
         self.forecast_date = None
         self.adjust_results = None
-        self.name = "cal_id: %i, %s" % (self.cal_id, self.qualifier)
+        self.name = "cal_id: %i, %s" % (self.cal_id if self.cal_id is not None else 0, self.qualifier if self.qualifier is not None else "main")
+        self.plot_params = params["plot_params"] if "plot_params" in params else None
+        self.metadata = None
     def loadData(self,timestart,timeend):
         logging.debug("Load prono data for series_id: %i, cal_id: %i" % (self.series_id, self.cal_id))
-        self.data = a5.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
-        if len(self.data["pronosticos"]):
-            self.data = a5.observacionesListToDataFrame(self.data["pronosticos"],tag="prono")
+        self.metadata = a5.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
+        if len(self.metadata["pronosticos"]):
+            self.data = a5.observacionesListToDataFrame(self.metadata["pronosticos"],tag="prono")
         else:
             logging.warning("No data found for series_id=%i, cal_id=%i" % (self.series_id, self.cal_id))
             self.data = a5.createEmptyObsDataFrame()
         self.original_data = self.data.copy(deep=True)
+        del self.metadata["pronosticos"]
+        self.metadata = NodeSeriePronoMetadata(self.metadata)
     def setData(self,data):
         self.data = data
+
+class NodeSeriePronoMetadata:
+    def __init__(self,params):
+        self.series_id = int(params["series_id"]) if "series_id" in params else None
+        self.cal_id = int(params["cal_id"]) if "cal_id" in params else None
+        self.cor_id = int(params["cor_id"]) if "cor_id" in params else None
+        self.forecast_date = dateutil.parser.isoparse(params["forecast_date"]) if "forecast_date" in params else None
+        self.qualifier = str(params["qualifier"]) if "qualifier" in params else None
+    def to_dict(self):
+        return {
+            "series_id": self.series_id,
+            "cal_id": self.cal_id,
+            "cor_id": self.cor_id,
+            "forecast_date": self.forecast_date,
+            "qualifier": self.qualifier
+        }
 
 class DerivedNodeSerie:
     def __init__(self,params,topology):
@@ -136,6 +176,7 @@ class DerivedNodeSerie:
             self.interpolated_from = InterpolatedOrigin(params["interpolated_from"],topology)
         else:
             self.interpolated_from = None
+        self.data = None
     def deriveTag(self,row,tag_column,tag="derived"):
         if row[tag_column] is None:
             return tag
@@ -315,7 +356,7 @@ class Node:
                 series_table = "series" if serie.type == "puntual" else "series_areal" if serie.type == "areal" else "series_rast" if serie.type == "raster" else "series"
                 list.append({"series_id": serie.series_id, "series_table": series_table, "observaciones": data.to_dict(orient="records")})
         return list
-    def adjust(self,plot=True):
+    def adjust(self,plot=True,error_band=True):
         truth_data = self.series[self.adjust_from["truth"]].data
         sim_data = self.series[self.adjust_from["sim"]].data
         self.series[self.adjust_from["sim"]].original_data = sim_data.copy(deep=True)
@@ -328,6 +369,9 @@ class Node:
         self.data.loc[:,"valor"] = adj_serie
         self.data.loc[:,"tag"] = tags
         self.adjust_results = model
+        if error_band:
+            self.data.loc[:,"error_band_01"] = adj_serie + self.adjust_results["quant_Err"][0.001]
+            self.data.loc[:,"error_band_99"] = adj_serie + self.adjust_results["quant_Err"][0.999]     
     def apply_linear_combination(self,plot=True,series_index=0):
         self.series[series_index].original_data = self.series[series_index].data.copy(deep=True)
         #self.series[series_index].data.loc[:,"valor"] = util.linearCombination(self.pivotData(),self.linear_combination,plot=plot)
@@ -336,7 +380,7 @@ class Node:
         for serie in self.series:
             if isinstance(serie,NodeSerie) and serie.moving_average is not None:
                 serie.applyMovingAverage()
-    def adjustProno(self):
+    def adjustProno(self,error_band=True):
         if not self.series_prono or not len(self.series_prono) or not len(self.series) or self.series[0].data is None:
             return
         truth_data = self.series[0].data
@@ -352,6 +396,10 @@ class Node:
             serie_prono.data.loc[:,"valor"] = adj_serie
             serie_prono.data.loc[:,"tag"] = tags
             serie_prono.adjust_results = model
+            if error_band:
+                serie_prono.data.loc[:,"error_band_01"] = adj_serie + serie_prono.adjust_results["quant_Err"][0.001]
+                serie_prono.data.loc[:,"error_band_99"] = adj_serie + serie_prono.adjust_results["quant_Err"][0.999]     
+
     # def pasteProno(self):
     #     pasted_data = self.data.copy(deep=True)
     #     if not len(self.series_prono):
@@ -453,6 +501,8 @@ class Node:
     def interpolate(self,limit : timedelta=None,extrapolate=False):
         interpolation_limit = int(limit.total_seconds() / self.time_interval.total_seconds()) if limit is not None else self.interpolation_limit 
         logging.info("interpolation limit:%s" % str(interpolation_limit))
+        if interpolation_limit <= 0:
+            return
         self.data = util.interpolateData(self.data,column="valor",tag_column="tag",interpolation_limit=interpolation_limit,extrapolate=extrapolate)
         
     def saveData(self,output,format="csv"): #,include_prono=False):
@@ -476,8 +526,27 @@ class Node:
         plt.plot(data)
         plt.legend(data.columns)
         plt.title(self.name if self.name is not None else self.id)
-
-
+    def plotProno(self,output_dir=None,figsize=None,title=None,markersize=None,obs_label=None,tz=None,prono_label=None,footnote=None,errorBandLabel=None,obsLine=None,prono_annotation=None,obs_annotation=None,forecast_date_annotation=None,ylim=None,station_name=None,ydisplay=None,text_xoffset=None,xytext=None,datum_template_string=None,title_template_string=None,x_label=None,y_label=None):
+        for serie_prono in self.series_prono:
+            output_file = util.getParamOrDefaultTo("output_file",None,serie_prono.plot_params,"%s/%s_%s.png" % (output_dir, self.name, serie_prono.cal_id) if output_dir is not None else None)
+            if output_file is None:
+                raise Exception("Missing output_dir or output_file")
+            station_name = util.getParamOrDefaultTo("station_name",station_name,serie_prono.plot_params,self.series[0].metadata["estacion"]["nombre"] if self.series[0].metadata is not None else None)
+            thresholds = self.series[0].getThresholds() if self.series[0].metadata is not None else None
+            datum = self.series[0].metadata["estacion"]["cero_ign"] if self.series[0].metadata is not None else None
+            error_band = ("error_band_01","error_band_99") if serie_prono.adjust_results is not None else None
+            ylim = util.getParamOrDefaultTo("ylim",ylim,serie_prono.plot_params)
+            ydisplay = util.getParamOrDefaultTo("ydisplay",ydisplay,serie_prono.plot_params)
+            text_xoffset = util.getParamOrDefaultTo("text_xoffset",text_xoffset,serie_prono.plot_params)
+            xytext = util.getParamOrDefaultTo("xytext",xytext,serie_prono.plot_params)
+            title = util.getParamOrDefaultTo("title",title,serie_prono.plot_params)
+            obs_label = util.getParamOrDefaultTo("obs_label",obs_label,serie_prono.plot_params)
+            tz = util.getParamOrDefaultTo("tz",tz,serie_prono.plot_params)
+            prono_label = util.getParamOrDefaultTo("prono_label",prono_label,serie_prono.plot_params)
+            errorBandLabel = util.getParamOrDefaultTo("errorBandLabel",errorBandLabel,serie_prono.plot_params)
+            obsLine = util.getParamOrDefaultTo("obsLine",obsLine,serie_prono.plot_params)
+            footnote = util.getParamOrDefaultTo("footnote",footnote,serie_prono.plot_params)
+            util.plot_prono(self.data,serie_prono.data,output_file=output_file,title=title,markersize=markersize,prono_label=prono_label,obs_label=obs_label,forecast_date=serie_prono.metadata.forecast_date,errorBand=error_band,errorBandLabel=errorBandLabel,obsLine=obsLine,prono_annotation=prono_annotation,obs_annotation=obs_annotation,forecast_date_annotation=forecast_date_annotation,station_name=station_name,thresholds=thresholds,datum=datum,footnote=footnote,figsize=figsize,ylim=ylim,ydisplay=ydisplay,text_xoffset=text_xoffset,xytext=xytext,tz=tz,datum_template_string=datum_template_string,title_template_string=title_template_string,x_label=x_label,y_label=y_label)
 
 class ObservedNode(Node):
     def __init__(self,params,timestart,timeend,forecast_timeend,plan=None,time_offset=None):
@@ -629,6 +698,8 @@ class Topology():
         for x in params["nodes"]:
             self.nodes.append(DerivedNode(x,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in x and x["derived"] == True else ObservedNode(x,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
         self.cal_id = params["cal_id"] if "cal_id" in params else None
+        self.plot_params = params["plot_params"] if "plot_params" in params else None
+        self.report_file = params["report_file"] if "report_file" in params else None 
     def addNode(self,node,plan=None):
         self.nodes.append(DerivedNode(node,self.timestart,self.timeend,self,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start) if "derived" in node and node["derived"] == True else ObservedNode(node,self.timestart,self.timeend,self.forecast_timeend,plan=plan,time_offset=self.time_offset_start))
     def batchProcessInput(self,include_prono=False):
@@ -656,6 +727,12 @@ class Topology():
         logging.debug("interpolate")
         self.interpolate(limit=self.interpolation_limit)
         self.setOutputData()
+        self.plotProno()
+        if(self.report_file is not None):
+            report = self.printReport()
+            f = open(self.report_file,"w")
+            json.dump(report,f,indent=2)
+            f.close()
     def loadData(self,include_prono=True):
         for node in self.nodes:
             if hasattr(node,"loadData"):
@@ -864,5 +941,77 @@ class Topology():
                 if hasattr(node,"max_obs_date"):
                     ax.axvline(node.max_obs_date, color='k', linestyle='--')
         plt.show()
+    def plotProno(self,output_dir:str=None,figsize=None,title=None,markersize=None,obs_label=None,tz=None,prono_label=None,footnote=None,errorBandLabel=None,obsLine=None,prono_annotation=None,obs_annotation=None,forecast_date_annotation=None,ylim=None,datum_template_string=None,title_template_string=None,x_label=None,y_label=None):
+        output_dir = util.getParamOrDefaultTo("output_dir",output_dir,self.plot_params)
+        footnote = util.getParamOrDefaultTo("footnote",footnote,self.plot_params)
+        figsize = util.getParamOrDefaultTo("figsize",figsize,self.plot_params)
+        markersize = util.getParamOrDefaultTo("markersize",markersize,self.plot_params)  
+        prono_annotation = util.getParamOrDefaultTo("prono_annotation",prono_annotation,self.plot_params)  
+        obsLine = util.getParamOrDefaultTo("obsLine",obsLine,self.plot_params)
+        obs_annotation = util.getParamOrDefaultTo("obs_annotation",obs_annotation,self.plot_params)
+        forecast_date_annotation = util.getParamOrDefaultTo("forecast_date_annotation",forecast_date_annotation,self.plot_params)
+        output_dir = util.getParamOrDefaultTo("output_dir",output_dir,self.plot_params)
+        ylim = util.getParamOrDefaultTo("ylim",ylim,self.plot_params)
+        errorBandLabel = util.getParamOrDefaultTo("errorBandLabel",errorBandLabel,self.plot_params)
+        obs_label = util.getParamOrDefaultTo("obs_label",obs_label,self.plot_params)
+        tz = util.getParamOrDefaultTo("tz",tz,self.plot_params)
+        prono_label = util.getParamOrDefaultTo("prono_label",prono_label,self.plot_params)
+        title = util.getParamOrDefaultTo("title",title,self.plot_params)
+        datum_template_string = util.getParamOrDefaultTo("datum_template_string",datum_template_string,self.plot_params)
+        title_template_string = util.getParamOrDefaultTo("title_template_string",title_template_string,self.plot_params)
+        x_label = util.getParamOrDefaultTo("x_label",x_label,self.plot_params)
+        y_label = util.getParamOrDefaultTo("y_label",y_label,self.plot_params)
+        for node in self.nodes:
+            node.plotProno(output_dir,figsize=figsize,title=title,markersize=markersize,obs_label=obs_label,tz=tz,prono_label=prono_label,footnote=footnote,errorBandLabel=errorBandLabel,obsLine=obsLine,prono_annotation=prono_annotation,obs_annotation=obs_annotation,forecast_date_annotation=forecast_date_annotation,ylim=ylim,datum_template_string=datum_template_string,title_template_string=title_template_string,x_label=x_label,y_label=y_label)
+    def printReport(self):
+        report = {"nodes":[]}
+        for node in self.nodes:
+            node_report = {
+                "id": node.id,
+                "name": node.name
+            }
+            if isinstance(node,ObservedNode):
+                if len(node.series):
+                    node_report["series_obs"] = []
+                    for serie in node.series:
+                        serie_notnull = serie.data[serie.data["valor"].notnull()]
+                        serie_report = {
+                            "series_id": serie.series_id,
+                            "len": len(serie.data),
+                            "outliers": [(x[0].isoformat(), x[1], x[2]) for x in list(serie.outliers_data.itertuples(name=None))] if serie.outliers_data is not None else None,
+                            "jumps": [(x[0].isoformat(), x[1], x[2]) for x in list(serie.jumps_data.itertuples(name=None))] if serie.jumps_data is not None else None,
+                            "nulls": int(serie.data["valor"].isna().sum()),
+                            "tag_counts": serie.data.groupby("tag").size().to_dict(),
+                            "min_date": serie_notnull.index[0].isoformat() if len(serie_notnull) else None,
+                            "max_date": serie_notnull.index[-1].isoformat() if len(serie_notnull) else None
+                        }
+                        node_report["series_obs"].append(serie_report)
+            if len(node.series_prono):
+                node_report["series_prono"] = []
+                for serie in node.series_prono:
+                    serie_notnull = serie.data[serie.data["valor"].notnull()]
+                    serie_report = {
+                        "series_id": serie.metadata.series_id,
+                        "cal_id": serie.metadata.cal_id,
+                        "forecast_date": serie.metadata.forecast_date.isoformat(),
+                        "len": len(serie.data),
+                        "outliers": [(x[0].isoformat(), x[1], x[2]) for x in list(serie.outliers_data.itertuples(name=None))] if serie.outliers_data is not None else None,
+                        "jumps": [(x[0].isoformat(), x[1], x[2]) for x in list(serie.jumps_data.itertuples(name=None))] if serie.jumps_data is not None else None,
+                        "nulls": int(serie.data["valor"].isna().sum()),
+                        "tag_counts": serie.data.groupby("tag").size().to_dict(),
+                        "min_date": serie_notnull.index[0].isoformat() if len(serie_notnull) else None,
+                        "max_date": serie_notnull.index[-1].isoformat() if len(serie_notnull) else None,
+                        "adjust_results": {
+                            "quant_Err": serie.adjust_results["quant_Err"].to_dict(),
+                            "r2": serie.adjust_results["r2"],
+                            "coef": [x for x in serie.adjust_results["coef"]],
+                            "intercept": serie.adjust_results["intercept"]
+                        } if serie.adjust_results is not None else None
+                    }
+                    node_report["series_prono"].append(serie_report)
+            report["nodes"].append(node_report)
+        return report    
+
+
     # def __iter__(self):
     #     return BordeSetIterator(self)

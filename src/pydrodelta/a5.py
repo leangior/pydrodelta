@@ -5,9 +5,10 @@ import pydrodelta.util as util
 import json
 import os
 from datetime import datetime
+import yaml
 
-config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
-config = json.load(config_file)
+config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
+config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
 
 
@@ -1216,8 +1217,8 @@ schemas = {
         }
     }
 }
-serie_schema = open("%s/data/schemas/serie.json" % os.environ["PYDRODELTA_DIR"])
-serie_schema = json.load(serie_schema)
+serie_schema = open("%s/data/schemas/serie.yml" % os.environ["PYDRODELTA_DIR"])
+serie_schema = yaml.load(serie_schema,yaml.CLoader)
 
 def validate(instance,classname):
     if classname not in schemas["components"]["schemas"].keys():
@@ -1425,26 +1426,52 @@ def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,
     if "series" not in json_response:
         print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
         return {
+            "forecast_date": json_response["forecast_date"],
+            "cal_id": json_response["cal_id"],
+            "cor_id": json_response["cor_id"],
             "series_id": series_id,
+            "qualifier": None,
             "pronosticos": []
         }
     if not len(json_response["series"]):
         print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
         return {
+            "forecast_date": json_response["forecast_date"],
+            "cal_id": json_response["cal_id"],
+            "cor_id": json_response["cor_id"],
             "series_id": series_id,
+            "qualifier": None,
             "pronosticos": []
         }
     if "pronosticos" not in json_response["series"][0]:
         print("Warning: pronosticos from series %i from cal_id %i not found" % (series_id,cal_id))
         return {
-            "series_id": series_id,
+            "forecast_date": json_response["forecast_date"],
+            "cal_id": json_response["cal_id"],
+            "cor_id": json_response["cor_id"],
+            "series_id": json_response["series"][0]["series_id"],
+            "qualifier": json_response["series"][0]["qualifier"],
             "pronosticos": []
         }
     if not len(json_response["series"][0]["pronosticos"]):
         print("Warning: pronosticos from series %i from cal_id %i is empty" % (series_id,cal_id))
-        return json_response["series"][0]
+        return {
+            "forecast_date": json_response["forecast_date"],
+            "cal_id": json_response["cal_id"],
+            "cor_id": json_response["cor_id"],
+            "series_id": json_response["series"][0]["series_id"],
+            "qualifier": json_response["series"][0]["qualifier"],
+            "pronosticos": []
+        }
     json_response["series"][0]["pronosticos"] = [ { "timestart": x[0], "valor": x[2]} for x in json_response["series"][0] ["pronosticos"]] # "series_id": series_id, "timeend": x[1] "qualifier":x[3]
-    return json_response["series"][0]
+    return {
+        "forecast_date": json_response["forecast_date"],
+        "cal_id": json_response["cal_id"],
+        "cor_id": json_response["cor_id"],
+        "series_id": json_response["series"][0]["series_id"],
+        "qualifier": json_response["series"][0]["qualifier"],
+        "pronosticos": json_response["series"][0]["pronosticos"]
+    }
 
 ## EJEMPLO
 '''

@@ -13,13 +13,14 @@ dependencies = [
     "pandas",
     "pytz",
     "sklearn",
-    "jsonschema"
+    "jsonschema",
+    "pyyaml"
 ]
 
 [tool.setuptools]
 include-package-data = true
 
-[tools.setuptools.packages.find]
+[tool.setuptools.packages.find]
 where = ["src"]
 include = ["pydrodelta*"]
 
