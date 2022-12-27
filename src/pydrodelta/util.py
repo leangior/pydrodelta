@@ -349,18 +349,27 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     quant_Err = train['Error_pred'].quantile([.001,.05,.95,.999])
     return lr,quant_Err,r2,coef,intercept
     
-def plot_prono(obs_df,sim_df,output_file,title=None,ydisplay=1,xytext=(-300,-200),ylim=(0,2.5),markersize=None,text_xoffset=(-8,-8),prono_label='forecasted',obs_label='observed',extraObs=None,extraObsLabel='observed 2', forecast_date=None, errorBand=None,obsLine=False,station_name="Station",thresholds={}, datum=0,footnote=None,tz="America/Argentina/Buenos_Aires",figsize=(14,12),errorBandLabel='error band',prono_annotation='forecast',obs_annotation='past',forecast_date_annotation='forecast date',x_label='date',y_label='value',datum_template_string=None,title_template_string="forecast at %s"):
+def plot_prono(obs_df:pandas.DataFrame,sim_df:pandas.DataFrame,output_file:str,title:str=None,ydisplay:float=1,xytext:tuple=(-300,-200),ylim:tuple=(0,2.5),markersize:int=20,text_xoffset:tuple=(-8,-8),prono_label:str='forecasted',obs_label:str='observed',extraObs:pandas.DataFrame=None,extraObsLabel:str='observed 2', forecast_date:datetime=None, errorBand:tuple=None,obsLine:bool=False,station_name:str="Station",thresholds:dict={}, datum:float=0,footnote:str=None,tz:str="America/Argentina/Buenos_Aires",figsize:tuple=(14,12),errorBandLabel:str='error band',prono_annotation:str='forecast',obs_annotation:str='past',forecast_date_annotation:str='forecast date',x_label:str='date',y_label:str='value',datum_template_string:str=None,title_template_string:str="forecast at %s"):
+    ydisplay = 1 if ydisplay is None else ydisplay
+    markersize = 20 if markersize is None else markersize
     errorBandLabel = "error band" if errorBandLabel is None else errorBandLabel
     tz = "America/Argentina/Buenos_Aires" if tz is None else tz
     prono_label='forecasted' if prono_label is None else prono_label
+    obs_label='observed' if obs_label is None else obs_label
+    extraObsLabel='observed 2' if extraObsLabel is None else extraObsLabel
     obs_annotation='past' if obs_annotation is None else obs_annotation
     station_name="Station" if station_name is None else station_name
+    datum = 0 if datum is None else datum
+    figsize=(14,12) if figsize is None else figsize
     prono_annotation='forecast' if prono_annotation is None else prono_annotation
     forecast_date_annotation='forecast date' if forecast_date_annotation is None else forecast_date_annotation
     title_template_string="forecast at %s" if title_template_string is None else title_template_string
     x_label='date' if x_label is None else x_label
     y_label = 'value' if y_label is None else y_label
     sim_df.index = sim_df.index.tz_convert(tz=tz)
+    text_xoffset = (-8,-8) if text_xoffset is None else text_xoffset
+    ylim = (0,2.5) if ylim is None else ylim
+    thresholds = {} if thresholds is None else thresholds
     if not isinstance(obs_df,type(None)):
         obs_df.index = obs_df.index.tz_convert(tz=tz)
         # print(df_obs.index)
@@ -392,7 +401,7 @@ def plot_prono(obs_df,sim_df,output_file,title=None,ydisplay=1,xytext=(-300,-200
     if thresholds.get("evacuacion"):
         plt.hlines(thresholds["evacuacion"], xmin, xmax, colors='r', linestyles='-.', label='Evacuación',linewidth=1.5)
     # fecha emision
-    if forecast_date:
+    if forecast_date is not None:
         if forecast_date.tzinfo is not None and forecast_date.tzinfo.utcoffset(forecast_date) is not None:
             ahora = forecast_date
         else:

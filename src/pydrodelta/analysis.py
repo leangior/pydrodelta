@@ -501,7 +501,7 @@ class Node:
     def interpolate(self,limit : timedelta=None,extrapolate=False):
         interpolation_limit = int(limit.total_seconds() / self.time_interval.total_seconds()) if limit is not None else self.interpolation_limit 
         logging.info("interpolation limit:%s" % str(interpolation_limit))
-        if interpolation_limit <= 0:
+        if interpolation_limit is not None and interpolation_limit <= 0:
             return
         self.data = util.interpolateData(self.data,column="valor",tag_column="tag",interpolation_limit=interpolation_limit,extrapolate=extrapolate)
         
@@ -527,10 +527,14 @@ class Node:
         plt.legend(data.columns)
         plt.title(self.name if self.name is not None else self.id)
     def plotProno(self,output_dir=None,figsize=None,title=None,markersize=None,obs_label=None,tz=None,prono_label=None,footnote=None,errorBandLabel=None,obsLine=None,prono_annotation=None,obs_annotation=None,forecast_date_annotation=None,ylim=None,station_name=None,ydisplay=None,text_xoffset=None,xytext=None,datum_template_string=None,title_template_string=None,x_label=None,y_label=None):
+        if self.series_prono is None:
+            logging.warn("Missing series_prono, skipping node")
+            return
         for serie_prono in self.series_prono:
             output_file = util.getParamOrDefaultTo("output_file",None,serie_prono.plot_params,"%s/%s_%s.png" % (output_dir, self.name, serie_prono.cal_id) if output_dir is not None else None)
             if output_file is None:
-                raise Exception("Missing output_dir or output_file")
+                logging.warn("Missing output_dir or output_file, skipping serie")
+                continue
             station_name = util.getParamOrDefaultTo("station_name",station_name,serie_prono.plot_params,self.series[0].metadata["estacion"]["nombre"] if self.series[0].metadata is not None else None)
             thresholds = self.series[0].getThresholds() if self.series[0].metadata is not None else None
             datum = self.series[0].metadata["estacion"]["cero_ign"] if self.series[0].metadata is not None else None
@@ -557,16 +561,25 @@ class ObservedNode(Node):
         logging.debug("Load data for observed node: %i" % (self.id))
         if self.series is not None:
             for serie in self.series:
-                serie.loadData(timestart,timeend)
+                try:
+                    serie.loadData(timestart,timeend)
+                except Exception as e:
+                    raise "Node %s, series_id %i: failed loadData: %s" % (self.id,serie.series_id,str(e))
         elif self.derived_from is not None:
             self.series = []
             self.series[0] = util.se
         if include_prono and self.series_prono is not None and len(self.series_prono):
             for serie in self.series_prono:
                 if forecast_timeend is not None:
-                    serie.loadData(timestart,forecast_timeend)
+                    try:
+                        serie.loadData(timestart,forecast_timeend)
+                    except Exception as e:
+                        raise "Node %s, series_id %i, cal_id %: failed loadData: %s" % (self.id,serie.series_id,serie.cal_id,str(e))
                 else:
-                    serie.loadData(timestart,timeend)
+                    try:
+                        serie.loadData(timestart,timeend)
+                    except Exception as e:
+                        raise "Node %s, series_id %i, cal_id %: failed loadData: %s" % (self.id,serie.series_id,serie.cal_id,str(e))
         if self.data is None and len(self.series):
             self.data = self.series[0].data
     def removeOutliers(self):
@@ -986,7 +999,7 @@ class Topology():
                             "max_date": serie_notnull.index[-1].isoformat() if len(serie_notnull) else None
                         }
                         node_report["series_obs"].append(serie_report)
-            if len(node.series_prono):
+            if node.series_prono is not None and len(node.series_prono):
                 node_report["series_prono"] = []
                 for serie in node.series_prono:
                     serie_notnull = serie.data[serie.data["valor"].notnull()]
