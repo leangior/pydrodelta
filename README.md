@@ -79,7 +79,7 @@ extract content into $PROJECT_DIR
 
 #### CLI
 
-    python3 cli.py pydrodelta_config/288_bordes_curados.json -u -p -c bordes_288.csv
+    pydrodelta run_analysis pydrodelta_config/288_bordes_curados.json -u -p -c bordes_288.csv
 
 #### References
 

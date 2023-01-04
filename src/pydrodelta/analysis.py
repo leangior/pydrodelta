@@ -10,6 +10,8 @@ import jsonschema
 import os
 import yaml 
 import dateutil.parser
+import sys
+import click
 
 #schema = open("%s/data/schemas/topology.json" % os.environ["PYDRODELTA_DIR"])
 schema = open("%s/data/schemas/topology.yml" % os.environ["PYDRODELTA_DIR"])
@@ -281,7 +283,7 @@ class Node:
         """
         data = self.data[["valor","tag"]] # self.concatenateProno(inline=False) if include_prono else self.data[["valor","tag"]] # self.series[0].data            
         if include_series_id:
-            data["series_id"] = self.series_output[0].series_id
+            data["series_id"] = self.series_output.series_id if type(self.series_output) == NodeSerie else self.series_output[0].series_id if type(self.series_output) == list else None
         return data.to_csv(header=include_header) # self.series[0].toCSV()
     def outputToCSV(self,include_header=True):
         """
@@ -1028,3 +1030,39 @@ class Topology():
 
     # def __iter__(self):
     #     return BordeSetIterator(self)
+
+@click.command()
+@click.pass_context
+@click.argument('config_file', type=str)
+@click.option("--csv", "-c", help="Save result of analysis as .csv file", type=str)
+@click.option("--json", "-j", help="Save result of analysis to .json file", type=str)
+@click.option("--pivot", "-p", help="Pivot output table", type=bool, default=False)
+@click.option("--upload", "-u", help="Upload output to database API", type=bool, default=False)
+@click.option("--include_prono", "-P", help="Concatenate series_prono to output series",type=bool, default=False)
+@click.option("--verbose", "-v", help="log to stdout",type=bool,default=False)
+def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose):
+    """
+    run analysis of border conditions from topology file
+    
+    config_file: location of config file (.json or .yml)
+    """
+    if verbose:
+        root = logging.getLogger()
+        root.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
+        handler.setFormatter(formatter)
+        root.addHandler(handler)
+    t_config = yaml.load(open(config_file),yaml.CLoader)
+    topology = Topology(t_config)
+    topology.batchProcessInput(include_prono=include_prono)
+    if csv is not None:
+        topology.saveData(csv,pivot=pivot)
+    if json is not None:
+        topology.saveData(json,format="json",pivot=pivot)
+    if upload:
+        uploaded = topology.uploadData()
+        if include_prono:
+            uploaded_prono = topology.uploadDataAsProno()
+
