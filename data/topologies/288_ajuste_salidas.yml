@@ -28,286 +28,305 @@ nodes:
   name: Zarate
   time_interval:
     hours: 1
-  series:
-  - series_id: 29437
-    lim_outliers:
-    - -1
-    - 5
-    lim_jump: 0.958
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná de las Palmas @ Zárate - H obs SAT2
-  series_prono:
-  - series_id: 29534
-    comment: Paraná de las Palmas @ Zárate - H sim hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1,2.5]
-      nombre_estacion: Zárate
-      output_file: data/plots/hidrodelta/Prono_Zarate.png
-      ydisplay: 2.3
-      text_xoffset: [-2,-8]
-      xytext: [-320,-200]
+  variables:
+  - id: 2
+    series:
+    - series_id: 29437
+      lim_outliers:
+      - -1
+      - 5
+      lim_jump: 0.958
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná de las Palmas @ Zárate - H obs SAT2
+    series_prono:
+    - series_id: 29534
+      comment: Paraná de las Palmas @ Zárate - H sim hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1,2.5]
+        nombre_estacion: Zárate
+        output_file: data/plots/hidrodelta/Prono_Zarate.png
+        ydisplay: 2.3
+        text_xoffset: [-2,-8]
+        xytext: [-320,-200]
 - id: 2
   name: Atucha
   time_interval:
     hours: 1
-  series:
-  - series_id: 151
-    lim_outliers:
-    - -1
-    - 5
-    lim_jump: 0.958
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná de las Palmas @ Atucha - H obs fdx
-  series_prono:
-  - series_id: 3403
-    comment: Paraná de las Palmas @ Atucha - H sim hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-0.5,3.5]
-      nombre_estacion: Atucha
-      output_file: data/plots/hidrodelta/Prono_Atucha.png
-      ydisplay: 3.3
-      text_xoffset: [-2,-8]
-      xytext: [-420,-120]
+  variables:
+  - id: 2
+    series:
+    - series_id: 151
+      lim_outliers:
+      - -1
+      - 5
+      lim_jump: 0.958
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná de las Palmas @ Atucha - H obs fdx
+    series_prono:
+    - series_id: 3403
+      comment: Paraná de las Palmas @ Atucha - H sim hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-0.5,3.5]
+        nombre_estacion: Atucha
+        output_file: data/plots/hidrodelta/Prono_Atucha.png
+        ydisplay: 3.3
+        text_xoffset: [-2,-8]
+        xytext: [-420,-120]
 - id: 3
   name: Campana
   time_interval:
     hours: 1
-  series:
-  - series_id: 41
-    lim_outliers:
-    - -1
-    - 4
-    lim_jump: 0.958
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná de las Palmas @ Campana - H obs PNA
-  series_prono:
-  - series_id: 3405
-    comment: Paraná de las Palmas @ Campana - H sim
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,2]
-      nombre_estacion: Campana
-      output_file: data/plots/hidrodelta/Prono_Campana.png
-      ydisplay: 1.8
-      text_xoffset: [-2.8,-5.8]
-      xytext: [-420,-120]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 41
+      lim_outliers:
+      - -1
+      - 4
+      lim_jump: 0.958
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná de las Palmas @ Campana - H obs PNA
+    series_prono:
+    - series_id: 3405
+      comment: Paraná de las Palmas @ Campana - H sim
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,2]
+        nombre_estacion: Campana
+        output_file: data/plots/hidrodelta/Prono_Campana.png
+        ydisplay: 1.8
+        text_xoffset: [-2.8,-5.8]
+        xytext: [-420,-120]
+        markersize: 10
+        obsLine: false
 - id: 4
   name: Escobar
   time_interval:
     hours: 1
-  series:
-  - series_id: 42
-    lim_outliers:
-    - -1
-    - 4
-    lim_jump: 1.5
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná de las Palmas @ Escobar - H obs PNA
-  series_prono:
-  - series_id: 3398
-    comment: Paraná de las Palmas @ Escobar - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,3]
-      nombre_estacion: Escobar
-      output_file: data/plots/hidrodelta/Prono_Escobar.png
-      ydisplay: 2.8
-      text_xoffset: [-2.8,-5.8]
-      xytext: [-320,-200]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 42
+      lim_outliers:
+      - -1
+      - 4
+      lim_jump: 1.5
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná de las Palmas @ Escobar - H obs PNA
+    series_prono:
+    - series_id: 3398
+      comment: Paraná de las Palmas @ Escobar - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,3]
+        nombre_estacion: Escobar
+        output_file: data/plots/hidrodelta/Prono_Escobar.png
+        ydisplay: 2.8
+        text_xoffset: [-2.8,-5.8]
+        xytext: [-320,-200]
+        markersize: 10
+        obsLine: false
 - id: 5
   name: Rosario
   time_interval:
     hours: 1
-  series:
-  - series_id: 29435
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná @ Rosario - H obs SAT
-  series_prono:
-  - series_id: 29542
-    comment: Paraná @ Rosario - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,6]
-      nombre_estacion: Rosario
-      output_file: data/plots/hidrodelta/Prono_Rosario.png
-      ydisplay: 5.5
-      text_xoffset: [-2.8,-5.8]
-      xytext: [-320,-200]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 29435
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná @ Rosario - H obs SAT
+    series_prono:
+    - series_id: 29542
+      comment: Paraná @ Rosario - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,6]
+        nombre_estacion: Rosario
+        output_file: data/plots/hidrodelta/Prono_Rosario.png
+        ydisplay: 5.5
+        text_xoffset: [-2.8,-5.8]
+        xytext: [-320,-200]
+        markersize: 10
+        obsLine: false
 - id: 6
   name: VCons
   time_interval:
     hours: 1
-  series:
-  - series_id: 29436
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 0.25
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná @ VCons - H obs SAT
-  series_prono:
-  - series_id: 29538
-    comment: Paraná @ VCons - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,6]
-      nombre_estacion: Villa Constitución
-      output_file: data/plots/hidrodelta/Prono_VConstitucion.png
-      ydisplay: 5.5
-      text_xoffset: [-2.8,-5.8]
-      xytext: [-300,-100]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 29436
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 0.25
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná @ VCons - H obs SAT
+    series_prono:
+    - series_id: 29538
+      comment: Paraná @ VCons - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,6]
+        nombre_estacion: Villa Constitución
+        output_file: data/plots/hidrodelta/Prono_VConstitucion.png
+        ydisplay: 5.5
+        text_xoffset: [-2.8,-5.8]
+        xytext: [-300,-100]
+        markersize: 10
+        obsLine: false
 - id: 7
   name: SNico
   time_interval:
     hours: 1
-  series:
-  - series_id: 36
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 1
-    y_offset: 0
-    comment: Paraná @ San Nicolás - H obs PNA
-  series_prono:
-  - series_id: 3414
-    comment: Paraná @ San Nicolás - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,6]
-      nombre_estacion: San Nicolás
-      output_file: data/plots/hidrodelta/Prono_SanNicolas.png
-      ydisplay: 5.5
-      text_xoffset: [-2.8,-5.8]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 36
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 1
+      y_offset: 0
+      comment: Paraná @ San Nicolás - H obs PNA
+    series_prono:
+    - series_id: 3414
+      comment: Paraná @ San Nicolás - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,6]
+        nombre_estacion: San Nicolás
+        output_file: data/plots/hidrodelta/Prono_SanNicolas.png
+        ydisplay: 5.5
+        text_xoffset: [-2.8,-5.8]
+        markersize: 10
+        obsLine: false
 - id: 8
   name: Ramallo
   time_interval:
     hours: 1
-  series:
-  - series_id: 37
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 1
-    y_offset: 0
-    comment: Paraná @ Ramallo - H obs PNA
-  series_prono:
-  - series_id: 3415
-    comment: Paraná @ Ramallo - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-1.0,5]
-      nombre_estacion: Ramallo
-      output_file: data/plots/hidrodelta/Prono_Ramallo.png
-      ydisplay: 4.7
-      text_xoffset: [-2.8,-5.8]
-      markersize: 10
-      obsLine: false
+  variables:
+  - id: 2
+    series:
+    - series_id: 37
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 1
+      y_offset: 0
+      comment: Paraná @ Ramallo - H obs PNA
+    series_prono:
+    - series_id: 3415
+      comment: Paraná @ Ramallo - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-1.0,5]
+        nombre_estacion: Ramallo
+        output_file: data/plots/hidrodelta/Prono_Ramallo.png
+        ydisplay: 4.7
+        text_xoffset: [-2.8,-5.8]
+        markersize: 10
+        obsLine: false
 - id: 9
   name: Carabelas
   time_interval:
     hours: 1
-  series:
-  - series_id: 26206
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 1
-    y_offset: 0
-    comment: Paraná @ Carabelas - H obs SAT
-  series_prono:
-  - series_id: 29536
-    comment: Paraná @ Carabelas - H sim Hidrodelta
-    cal_id: 288
-    adjust: true
-    plot_params:
-      ylim: [-0.5,3.5]
-      nombre_estacion: Carabelas
-      output_file: data/plots/hidrodelta/prono_carabelas.png
-      ydisplay: 3.3
-      text_xoffset: [-2.8,-5.8]
+  variables:
+  - id: 2
+    series:
+    - series_id: 26206
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 1
+      y_offset: 0
+      comment: Paraná @ Carabelas - H obs SAT
+    series_prono:
+    - series_id: 29536
+      comment: Paraná @ Carabelas - H sim Hidrodelta
+      cal_id: 288
+      adjust: true
+      plot_params:
+        ylim: [-0.5,3.5]
+        nombre_estacion: Carabelas
+        output_file: data/plots/hidrodelta/prono_carabelas.png
+        ydisplay: 3.3
+        text_xoffset: [-2.8,-5.8]
 - id: 9
   name: NPal
   time_interval:
     hours: 1
-  series:
-  - series_id: 3280
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná @ NPal - H obs CARU
-  series_prono:
-  - series_id: 26203
-    comment: Paraná @ NPal - H sim ajuste borde hidrodelta
-    cal_id: 433
-    qualifier: main
-    adjust: true
-    plot_params:
-      ylim: [-0.5,3.5]
-      nombre_estacion: NuevaPalmira
-      output_file: data/plots/hidrodelta/Prono_NPalmira.png
-      ydisplay: 3.3
-      text_xoffset: [-2.8,-5.8]
+  variables:
+  - id: 2
+    series:
+    - series_id: 3280
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná @ NPal - H obs CARU
+    series_prono:
+    - series_id: 26203
+      comment: Paraná @ NPal - H sim ajuste borde hidrodelta
+      cal_id: 433
+      qualifier: main
+      adjust: true
+      plot_params:
+        ylim: [-0.5,3.5]
+        nombre_estacion: NuevaPalmira
+        output_file: data/plots/hidrodelta/Prono_NPalmira.png
+        ydisplay: 3.3
+        text_xoffset: [-2.8,-5.8]
 - id: 10
   name: Blar
   time_interval:
     hours: 1
-  series:
-  - series_id: 9442
-    lim_outliers:
-    - -1
-    - 6
-    lim_jump: 1.5
-    x_offset: 0
-    y_offset: 0
-    comment: Paraná @ Blar - H obs SAT
-  series_prono:
-  - series_id: 29586
-    comment: Paraná @ Blar - H sim hidrodelta
-    cal_id: 288
-    qualifier: main
-    adjust: true
-    plot_params:
-      ylim: [-1.5,2.5]
-      nombre_estacion: BrazoLargo
-      output_file: data/plots/hidrodelta/prono_BrazoLargo.png
-      ydisplay: 2.3
-      text_xoffset: [-2.8,-5.8]
-
-
-
+  variables:
+  - id: 2
+    series:
+    - series_id: 9442
+      lim_outliers:
+      - -1
+      - 6
+      lim_jump: 1.5
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná @ Blar - H obs SAT
+    series_prono:
+    - series_id: 29586
+      comment: Paraná @ Blar - H sim hidrodelta
+      cal_id: 288
+      qualifier: main
+      adjust: true
+      plot_params:
+        ylim: [-1.5,2.5]
+        nombre_estacion: BrazoLargo
+        output_file: data/plots/hidrodelta/prono_BrazoLargo.png
+        ydisplay: 2.3
+        text_xoffset: [-2.8,-5.8]

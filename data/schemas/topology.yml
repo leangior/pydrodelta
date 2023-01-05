@@ -49,92 +49,15 @@ required:
         type: string
       geometry:
         "$ref": "#/$defs/Geometry"
-      series:
-        description: Input timeseries for the node in order of priority
-        type: array
-        items:
-          "$ref": "#/$defs/NodeSerie"
-      series_prono:
-        description: Input timeseries for the node, forecasted
-        type: array
-        items:
-          "$ref": "#/$defs/NodeSerieProno"
-      series_output:
-        description: Output timeseries for the node (as result of analysis)
-        type: array
-        items:
-          "$ref": "#/$defs/NodeSerie"
-      series_sim:
-        description: Simulation output timeseries for the node (as result of Plan
-          execution)
-        type: array
-        items:
-          "$ref": "#/$defs/NodeSerieSim"
       time_interval:
         "$ref": "#/$defs/TimeInterval"
-      output_series_id:
-        type:
-        - number
-        - 'null'
-      derived:
-        type: boolean
-      derived_from:
-        title: derived-from
-        type: object
-        properties:
-          node_id:
-            type: number
-          x_offset:
-            "$ref": "#/$defs/TimeInterval"
-          y_offset:
-            type: number
-        required:
-        - node_id
-      interpolated_from:
-        title: interpolated-from
-        type: object
-        properties:
-          node_id_1:
-            type: number
-          node_id_2:
-            type: number
-          x_offset:
-            "$ref": "#/$defs/TimeInterval"
-          y_offset:
-            type: number
-          interpolation_coefficient:
-            type: number
-        required:
-        - node_id_1
-        - node_id_2
-        - interpolation_coefficient
-      adjust_from:
-        type: object
-        properties:
-          truth:
-            type: number
-            description: índice de la serie observada, contra la cual se calcularán
-              los errores
-          sim:
-            type: number
-            description: índice de la serie simulada, la que se ajustará en función
-              del error
-          method:
-            type: string
-            description: método de ajuste (lfit,..)
-            enum:
-            - lfit
-      linear_combination:
-        type: object
-        properties:
-          intercept:
-            type: number
-          coefficients:
-            type: array
-            items:
-              type: number
       interpolation_limit:
         type: number
+      variables:
+        description: "Variables observed or estimated at this node"
+        type: "array"
+        items:
+          "$ref": "#/$defs/NodeVariable"
       hec_node:
         type: object
         properties:
@@ -162,6 +85,108 @@ required:
     - id
     - name
     - time_interval
+  NodeVariable:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      series:
+        description: Input timeseries for the node in order of priority
+        type: array
+        items:
+          "$ref": "#/$defs/NodeSerie"
+      series_prono:
+        description: Input timeseries for the node, forecasted
+        type: array
+        items:
+          "$ref": "#/$defs/NodeSerieProno"
+      series_output:
+        description: Output timeseries for the node (as result of analysis)
+        type: array
+        items:
+          "$ref": "#/$defs/NodeSerie"
+      series_sim:
+        description: Simulation output timeseries for the node (as result of Plan
+          execution)
+        type: array
+        items:
+          "$ref": "#/$defs/NodeSerieSim"
+      output_series_id:
+        type:
+        - number
+        - 'null'
+      derived:
+        type: boolean
+      derived_from:
+        title: derived-from
+        type: object
+        properties:
+          node_id:
+            type: number
+          var_id:
+            type: number
+          x_offset:
+            "$ref": "#/$defs/TimeInterval"
+          y_offset:
+            type: number
+        required:
+        - node_id
+        - var_id
+      interpolated_from:
+        title: interpolated-from
+        type: object
+        properties:
+          node_id_1:
+            type: number
+          node_id_2:
+            type: number
+          var_id_1:
+            type: number
+          var_id_2:
+            type: number
+          x_offset:
+            "$ref": "#/$defs/TimeInterval"
+          y_offset:
+            type: number
+          interpolation_coefficient:
+            type: number
+        required:
+        - node_id_1
+        - node_id_2
+        - var_id_1
+        - var_id_2
+        - interpolation_coefficient
+      adjust_from:
+        type: object
+        properties:
+          truth:
+            type: number
+            description: índice de la serie observada, contra la cual se calcularán
+              los errores
+          sim:
+            type: number
+            description: índice de la serie simulada, la que se ajustará en función
+              del error
+          method:
+            type: string
+            description: método de ajuste (lfit,..)
+            enum:
+            - lfit
+      linear_combination:
+        type: object
+        properties:
+          intercept:
+            type: number
+          coefficients:
+            type: array
+            items:
+              type: number
+      time_interval:
+        "$ref": "#/$defs/TimeInterval"
+    required:
+    - id
   NodeSerie:
     type: object
     properties:
