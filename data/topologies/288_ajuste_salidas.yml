@@ -330,3 +330,30 @@ nodes:
         output_file: data/plots/hidrodelta/prono_BrazoLargo.png
         ydisplay: 2.3
         text_xoffset: [-2.8,-5.8]
+- id: 10
+  name: INTA_Delta
+  time_interval:
+    hours: 1
+  variables:
+  - id: 2
+    series:
+    - series_id: 31866
+      lim_outliers:
+      - -2
+      - 6
+      lim_jump: 1.0
+      x_offset: 0
+      y_offset: 0
+      comment: Paraná @ INTA Delta - H obs INA-INTA
+    series_prono:
+    - series_id: 31867
+      comment: Paraná @ INTA Delta - H sim hidrodelta
+      cal_id: 288
+      qualifier: main
+      adjust: true
+      plot_params:
+        ylim: [-0.5,4]
+        nombre_estacion: INTADelta
+        output_file: data/plots/hidrodelta/prono_INTADelta.png
+        ydisplay: 3.5
+        text_xoffset: [-2.8,-5.8]

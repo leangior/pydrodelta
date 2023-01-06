@@ -1063,8 +1063,8 @@ class Topology():
                     data = data.join(variable.data[columns][variable.data.valor.notnull()],how='outer',rsuffix=rsuffix,sort=True) # data.join(node.series[0].data[["valor",]][node.series[0].data.valor.notnull()],how='outer',rsuffix="_%s" % node.name,sort=True)
                     if (not use_output_series_id or variable.series_output is None) and use_node_id:
                         data = data.rename(columns={"valor_%s_%i" % (str(node.id),variable.id) : node.id})
-        # for column in columns:
-        #     del data[column]
+        for column in columns:
+            del data[column]
         data = data.replace({np.NaN:None})
         return data
     def pivotOutputData(self,include_tag=True):
