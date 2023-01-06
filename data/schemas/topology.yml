@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
 ---
 "$id": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json
 schema: https://json-schema.org/draft/2020-12/schema
@@ -34,7 +35,7 @@ properties:
   cal_id:
     type: integer
   plot_params:
-    type: object
+    "href": "#/$defs/PlotParams"
 required:
 - timestart
 - timeend
@@ -225,7 +226,7 @@ required:
       adjust:
         type: boolean
       plot_params:
-        type: object
+        href: "#/$defs/PlotParams"
   NodeSerieProno:
     allOf:
     - "$ref": "#/$defs/NodeSerie"
@@ -240,7 +241,7 @@ required:
       adjust:
         type: boolean
       plot_params:
-        type: object
+        "href": "#/$defs/PlotParams"
     required:
     - series_id
     - cal_id
@@ -315,3 +316,61 @@ required:
     - puntual
     - areal
     - raster
+  PlotParams:
+    type: object
+    properties:
+      figsize: 
+        description: x y size in cm of the plot
+        type: array
+        items:
+          type: number
+      forecast_date_annotation:
+        type: string
+      errorBandLabel:
+        type: string
+      prono_annotation:
+        type: string
+      obs_annotation:
+        type: string
+      x_label:
+        type: string
+      y_label:
+        type: string
+      datum_template_string:
+        type: string
+      title_template_string:
+        type: string
+      obs_label:
+        type: string
+      prono_label:
+        type: string
+      footnote:
+        type: string
+      xlim:
+        description: bounds of the x axis (dates or intervals)
+        type: array
+        items:
+          href: "#/$defs/DateOrInterval"
+      ylim:
+        description: bounds of the y axis
+        type: array
+        items:
+          type: number 
+      nombre_estacion:
+        type: string
+      output_file:
+        description: plot output file location
+        type: string
+      ydisplay:
+        description: y coordinate of the annotations
+        type: number
+      text_xoffset:
+        description: x offset in points from default position of the annotations
+        type: array
+        items:
+          type: number
+      xytext:
+        description: not used
+        type: array
+        items:
+          type: number

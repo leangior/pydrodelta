@@ -349,7 +349,7 @@ def ModelRL(data : pandas.DataFrame, varObj : str, covariables : list):
     quant_Err = train['Error_pred'].quantile([.001,.05,.95,.999])
     return lr,quant_Err,r2,coef,intercept
     
-def plot_prono(obs_df:pandas.DataFrame,sim_df:pandas.DataFrame,output_file:str,title:str=None,ydisplay:float=1,xytext:tuple=(-300,-200),ylim:tuple=(0,2.5),markersize:int=20,text_xoffset:tuple=(-8,-8),prono_label:str='forecasted',obs_label:str='observed',extraObs:pandas.DataFrame=None,extraObsLabel:str='observed 2', forecast_date:datetime=None, errorBand:tuple=None,obsLine:bool=False,station_name:str="Station",thresholds:dict={}, datum:float=0,footnote:str=None,tz:str="America/Argentina/Buenos_Aires",figsize:tuple=(14,12),errorBandLabel:str='error band',prono_annotation:str='forecast',obs_annotation:str='past',forecast_date_annotation:str='forecast date',x_label:str='date',y_label:str='value',datum_template_string:str=None,title_template_string:str="forecast at %s"):
+def plot_prono(obs_df:pandas.DataFrame,sim_df:pandas.DataFrame,output_file:str,title:str=None,ydisplay:float=1,xytext:tuple=(-300,-200),ylim:tuple=(0,2.5),markersize:int=20,text_xoffset:tuple=(-8,-8),prono_label:str='forecasted',obs_label:str='observed',extraObs:pandas.DataFrame=None,extraObsLabel:str='observed 2', forecast_date:datetime=None, errorBand:tuple=None,obsLine:bool=False,station_name:str="Station",thresholds:dict={}, datum:float=0,footnote:str=None,tz:str="America/Argentina/Buenos_Aires",figsize:tuple=(14,12),errorBandLabel:str='error band',prono_annotation:str='forecast',obs_annotation:str='past',forecast_date_annotation:str='forecast date',x_label:str='date',y_label:str='value',datum_template_string:str=None,title_template_string:str="forecast at %s",xlim:tuple=None):
     ydisplay = 1 if ydisplay is None else ydisplay
     markersize = 20 if markersize is None else markersize
     errorBandLabel = "error band" if errorBandLabel is None else errorBandLabel
@@ -434,7 +434,20 @@ def plot_prono(obs_df:pandas.DataFrame,sim_df:pandas.DataFrame,output_file:str,t
         plt.figtext(0,0,datum_template_string % (station_name, str(round(datum+0.53,2)), str(round(datum,2))),fontsize=12,ha="left")
     if ylim:
         ax.set_ylim(ylim[0],ylim[1])
-    ax.set_xlim(xmin,xmax)
+    if xlim is not None:
+        if xlim[0] is not None:
+            xlim[0] = tryParseAndLocalizeDate(xlim[0])
+        else:
+            xlim[0] = xmin
+        if xlim[1] is not None:
+            xlim[1] = tryParseAndLocalizeDate(xlim[1])
+        else:
+            xlim[1] = xmax
+    else:
+        xlim = (xmin,xmax)
+    xlim[0] = roundDownDate(xlim[0],timedelta(days=1))
+    xlim[1] = roundDownDate(xlim[1],timedelta(days=1))
+    ax.set_xlim(xlim[0],xlim[1])
     ax.tick_params(labeltop=False, labelright=True)
     plt.grid(True, which='both', color='0.75', linestyle='-.',linewidth=0.5)
     plt.tick_params(axis='both', labelsize=16)

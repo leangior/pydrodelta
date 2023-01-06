@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json
 ---
 timestart:
   days: -15
@@ -22,6 +23,10 @@ plot_params:
   obs_label: Nivel observado
   prono_label: Nivel pronosticado
   footnote: "          (*) Esta previsión surge de aplicar el Modelo Matemático del Delta del Programa de Hidráulica Computacional (PHC) de la Subgerencia \n          del Laboratorio de Hidráulica (SLH) del Instituto Nacional del Agua (INA), forzado por el caudal pronosticado del río Paraná de acuerdo \n          al Sistema de Información y Alerta Hidrológico (SIyAH-INA) y por el nivel del Río de la Plata en el arco San Fernando - Nueva Palmira \n          pronosticado por el Servicio de Hidrografía Naval (SHN) y el Servicio Meteorológico Nacional (SMN). Es una herramienta preliminar \n          de pronóstico para utilizar en la emergencia hídrica, que se irá ajustando en el tiempo para generar información más confiable. \n \n"
+  xlim:
+  - days: -4
+  - days: 4
+  text_xoffset: [-2,4]
 report_file: data/reports/288_ajuste_salidas.json
 nodes:
 - id: 1
@@ -49,7 +54,6 @@ nodes:
         nombre_estacion: Zárate
         output_file: data/plots/hidrodelta/Prono_Zarate.png
         ydisplay: 2.3
-        text_xoffset: [-2,-8]
         xytext: [-320,-200]
 - id: 2
   name: Atucha
@@ -76,7 +80,6 @@ nodes:
         nombre_estacion: Atucha
         output_file: data/plots/hidrodelta/Prono_Atucha.png
         ydisplay: 3.3
-        text_xoffset: [-2,-8]
         xytext: [-420,-120]
 - id: 3
   name: Campana
@@ -103,7 +106,6 @@ nodes:
         nombre_estacion: Campana
         output_file: data/plots/hidrodelta/Prono_Campana.png
         ydisplay: 1.8
-        text_xoffset: [-2.8,-5.8]
         xytext: [-420,-120]
         markersize: 10
         obsLine: false
@@ -132,7 +134,6 @@ nodes:
         nombre_estacion: Escobar
         output_file: data/plots/hidrodelta/Prono_Escobar.png
         ydisplay: 2.8
-        text_xoffset: [-2.8,-5.8]
         xytext: [-320,-200]
         markersize: 10
         obsLine: false
@@ -161,7 +162,6 @@ nodes:
         nombre_estacion: Rosario
         output_file: data/plots/hidrodelta/Prono_Rosario.png
         ydisplay: 5.5
-        text_xoffset: [-2.8,-5.8]
         xytext: [-320,-200]
         markersize: 10
         obsLine: false
@@ -190,7 +190,6 @@ nodes:
         nombre_estacion: Villa Constitución
         output_file: data/plots/hidrodelta/Prono_VConstitucion.png
         ydisplay: 5.5
-        text_xoffset: [-2.8,-5.8]
         xytext: [-300,-100]
         markersize: 10
         obsLine: false
@@ -219,7 +218,6 @@ nodes:
         nombre_estacion: San Nicolás
         output_file: data/plots/hidrodelta/Prono_SanNicolas.png
         ydisplay: 5.5
-        text_xoffset: [-2.8,-5.8]
         markersize: 10
         obsLine: false
 - id: 8
@@ -247,7 +245,6 @@ nodes:
         nombre_estacion: Ramallo
         output_file: data/plots/hidrodelta/Prono_Ramallo.png
         ydisplay: 4.7
-        text_xoffset: [-2.8,-5.8]
         markersize: 10
         obsLine: false
 - id: 9
@@ -275,7 +272,6 @@ nodes:
         nombre_estacion: Carabelas
         output_file: data/plots/hidrodelta/prono_carabelas.png
         ydisplay: 3.3
-        text_xoffset: [-2.8,-5.8]
 - id: 9
   name: NPal
   time_interval:
@@ -302,7 +298,6 @@ nodes:
         nombre_estacion: NuevaPalmira
         output_file: data/plots/hidrodelta/Prono_NPalmira.png
         ydisplay: 3.3
-        text_xoffset: [-2.8,-5.8]
 - id: 10
   name: Blar
   time_interval:
@@ -329,7 +324,6 @@ nodes:
         nombre_estacion: BrazoLargo
         output_file: data/plots/hidrodelta/prono_BrazoLargo.png
         ydisplay: 2.3
-        text_xoffset: [-2.8,-5.8]
 - id: 10
   name: INTA_Delta
   time_interval:
@@ -356,4 +350,3 @@ nodes:
         nombre_estacion: INTADelta
         output_file: data/plots/hidrodelta/prono_INTADelta.png
         ydisplay: 3.5
-        text_xoffset: [-2.8,-5.8]
