@@ -1,0 +1,552 @@
+{
+  "$id": "data/schemas/topology.json",
+  "schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Topology",
+  "type": "object",
+  "properties": {
+    "timestart": {
+      "description": "start date of observations period (datetime or timedelta relative to now)",
+      "$ref": "#/$defs/DateOrInterval"
+    },
+    "timeend": {
+      "description": "end date of observations period (datetime or timedelta relative to now)",
+      "$ref": "#/$defs/DateOrInterval"
+    },
+    "forecast_timeend": {
+      "description": "forecast horizon (datetime or timedelta relative to timeend)",
+      "$ref": "#/$defs/DateOrInterval"
+    },
+    "time_offset": {
+      "description": "time of day where timesteps start",
+      "$ref": "#/$defs/DateOrInterval"
+    },
+    "nodes": {
+      "description": "information nodes of the topology",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Node"
+      }
+    },
+    "analysis": {
+      "description": "analysis actions to perform",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "concatenateProno",
+          "uploadData"
+        ]
+      }
+    },
+    "cal_id": {
+      "type": "integer"
+    },
+    "plot_params": {
+      "href": "#/$defs/PlotParams"
+    }
+  },
+  "required": [
+    "timestart",
+    "timeend",
+    "nodes"
+  ],
+  "$defs": {
+    "Node": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/Geometry"
+        },
+        "time_interval": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "interpolation_limit": {
+          "type": "number"
+        },
+        "variables": {
+          "description": "Variables observed or estimated at this node",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeVariable"
+          }
+        },
+        "hec_node": {
+          "type": "object",
+          "properties": {
+            "River": {
+              "type": "string"
+            },
+            "Reach": {
+              "type": "string"
+            },
+            "River_Stat": {
+              "type": "integer"
+            },
+            "Interval": {
+              "type": "string"
+            },
+            "CondBorde": {
+              "type": "string",
+              "enum": [
+                "Stage Hydrograph",
+                "Flow Hydrograph"
+              ]
+            }
+          },
+          "required": [
+            "River",
+            "Reach",
+            "River_Stat",
+            "Interval",
+            "CondBorde"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "time_interval"
+      ]
+    },
+    "NodeVariable": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "series": {
+          "description": "Input timeseries for the variable in order of priority",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeSerie"
+          }
+        },
+        "series_prono": {
+          "description": "Input timeseries for the variable, forecasted",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeSerieProno"
+          }
+        },
+        "series_output": {
+          "description": "Output timeseries for the variable (as result of analysis)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeSerie"
+          }
+        },
+        "series_sim": {
+          "description": "Simulation output timeseries for the variable (as result of Plan execution)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NodeSerieSim"
+          }
+        },
+        "output_series_id": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "derived": {
+          "type": "boolean"
+        },
+        "derived_from": {
+          "title": "derived-from",
+          "type": "object",
+          "properties": {
+            "node_id": {
+              "type": "number"
+            },
+            "var_id": {
+              "type": "number"
+            },
+            "x_offset": {
+              "$ref": "#/$defs/TimeInterval"
+            },
+            "y_offset": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "node_id",
+            "var_id"
+          ]
+        },
+        "interpolated_from": {
+          "title": "interpolated-from",
+          "type": "object",
+          "properties": {
+            "node_id_1": {
+              "type": "number"
+            },
+            "node_id_2": {
+              "type": "number"
+            },
+            "var_id_1": {
+              "type": "number"
+            },
+            "var_id_2": {
+              "type": "number"
+            },
+            "x_offset": {
+              "$ref": "#/$defs/TimeInterval"
+            },
+            "y_offset": {
+              "type": "number"
+            },
+            "interpolation_coefficient": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "node_id_1",
+            "node_id_2",
+            "var_id_1",
+            "var_id_2",
+            "interpolation_coefficient"
+          ]
+        },
+        "adjust_from": {
+          "type": "object",
+          "properties": {
+            "truth": {
+              "type": "number",
+              "description": "índice de la serie observada, contra la cual se calcularán los errores"
+            },
+            "sim": {
+              "type": "number",
+              "description": "índice de la serie simulada, la que se ajustará en función del error"
+            },
+            "method": {
+              "type": "string",
+              "description": "método de ajuste (lfit,..)",
+              "enum": [
+                "lfit"
+              ]
+            }
+          }
+        },
+        "linear_combination": {
+          "type": "object",
+          "properties": {
+            "intercept": {
+              "type": "number"
+            },
+            "coefficients": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "time_interval": {
+          "$ref": "#/$defs/TimeInterval"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "NodeSerie": {
+      "type": "object",
+      "properties": {
+        "series_id": {
+          "type": "number"
+        },
+        "tipo": {
+          "$ref": "#/$defs/SeriesTipo"
+        },
+        "lim_outliers": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2
+        },
+        "lim_jump": {
+          "type": "number"
+        },
+        "x_offset": {
+          "$ref": "#/$defs/TimeInterval"
+        },
+        "y_offset": {
+          "type": "number"
+        },
+        "comment": {
+          "type": "string"
+        },
+        "moving_average": {
+          "$ref": "#/$defs/TimeInterval"
+        }
+      },
+      "required": [
+        "series_id"
+      ]
+    },
+    "NodeSerieSim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/NodeSerie"
+        }
+      ],
+      "properties": {
+        "cal_id": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "id de calibrado, para utilizar salida de pronóstico"
+        },
+        "qualifier": {
+          "type": "string"
+        },
+        "adjust": {
+          "type": "boolean"
+        },
+        "plot_params": {
+          "href": "#/$defs/PlotParams"
+        }
+      }
+    },
+    "NodeSerieProno": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/NodeSerie"
+        }
+      ],
+      "properties": {
+        "cal_id": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "id de calibrado, para utilizar salida de pronóstico"
+        },
+        "qualifier": {
+          "type": "string"
+        },
+        "adjust": {
+          "type": "boolean"
+        },
+        "plot_params": {
+          "href": "#/$defs/PlotParams"
+        }
+      },
+      "required": [
+        "series_id",
+        "cal_id"
+      ]
+    },
+    "TimeInterval": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hours": {
+              "type": "number"
+            },
+            "minutes": {
+              "type": "number"
+            },
+            "seconds": {
+              "type": "number"
+            },
+            "milliseconds": {
+              "type": "number"
+            },
+            "months": {
+              "type": "number"
+            },
+            "days": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "DateOrInterval": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/TimeInterval"
+        }
+      ]
+    },
+    "Geometry": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "tipo de geometría",
+          "type": "string",
+          "enum": [
+            "Point",
+            "MultiPoint",
+            "LineString",
+            "MultiLineString",
+            "Polygon",
+            "MultiPolygon",
+            "GeometryCollection"
+          ]
+        },
+        "coordinates": {
+          "description": "coordenadas",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "$ref": "#/$defs/LineString"
+            },
+            {
+              "$ref": "#/$defs/Polygon"
+            },
+            {
+              "$ref": "#/$defs/MultiPolygon"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ]
+    },
+    "Position": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 3
+    },
+    "LineString": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Position"
+      },
+      "minItems": 2
+    },
+    "Polygon": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LineString"
+      }
+    },
+    "MultiPolygon": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Polygon"
+      }
+    },
+    "SeriesTipo": {
+      "type": "string",
+      "enum": [
+        "puntual",
+        "areal",
+        "raster"
+      ]
+    },
+    "PlotParams": {
+      "type": "object",
+      "properties": {
+        "figsize": {
+          "description": "x y size in cm of the plot",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "forecast_date_annotation": {
+          "type": "string"
+        },
+        "errorBandLabel": {
+          "type": "string"
+        },
+        "prono_annotation": {
+          "type": "string"
+        },
+        "obs_annotation": {
+          "type": "string"
+        },
+        "x_label": {
+          "type": "string"
+        },
+        "y_label": {
+          "type": "string"
+        },
+        "datum_template_string": {
+          "type": "string"
+        },
+        "title_template_string": {
+          "type": "string"
+        },
+        "obs_label": {
+          "type": "string"
+        },
+        "prono_label": {
+          "type": "string"
+        },
+        "footnote": {
+          "type": "string"
+        },
+        "xlim": {
+          "description": "bounds of the x axis (dates or intervals)",
+          "type": "array",
+          "items": {
+            "href": "#/$defs/DateOrInterval"
+          }
+        },
+        "ylim": {
+          "description": "bounds of the y axis",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "nombre_estacion": {
+          "type": "string"
+        },
+        "output_file": {
+          "description": "plot output file location",
+          "type": "string"
+        },
+        "ydisplay": {
+          "description": "y coordinate of the annotations",
+          "type": "number"
+        },
+        "text_xoffset": {
+          "description": "x offset in points from default position of the annotations",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "xytext": {
+          "description": "not used",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

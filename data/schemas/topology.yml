@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
 ---
-"$id": "https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.yml"
+"$id": "data/schemas/topology.yml"
 schema: https://json-schema.org/draft/2020-12/schema
 title: Topology
 type: object

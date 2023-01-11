@@ -1,5 +1,5 @@
 ---
-"$id": "https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/plan.yml"
+"$id": "data/schemas/plan.yml"
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Plan
 type: object
@@ -13,17 +13,13 @@ properties:
   topology:
     description: Either topology object or topology file path
     oneOf:
-    - "$ref": "/topology.yml"
+    - "$ref": "topology.json"
     - type: string
   procedures:
     type: array
     items:
       oneOf:
-      - "$ref": "#/$defs/QQProcedure"
-      - "$ref": "#/$defs/PQProcedure"
-      - "$ref": "#/$defs/MemProcedure"
-      - "$ref": "#/$defs/HecRasProcedure"
-      - "$ref": "#/$defs/LinearProcedure"
+      - "$ref": "#/$defs/Procedure"
       - type: string
 required:
 - id
@@ -44,29 +40,31 @@ additionalProperties: false
         type: array
         items:
           oneOf:
-          - "$ref": "topology.yml#/$defs/NodeVariable"
+          - "$ref": "topology.json#/$defs/NodeVariable"
           - "$ref": "#/$defs/NodeVariableIdTuple"
       outputs:
         description: "output node variables where to write procedure outcome"
         type: array
         items:
           oneOf:
-          - "$ref": "topology.yml#/$defs/NodeVariable"
+          - "$ref": "topology.json#/$defs/NodeVariable"
           - "$ref": "#/$defs/NodeVariableIdTuple"
       initial_states:
         type: array
         items:
           type: number
       function:
-        "$ref": "#/$defs/ProcedureFunction"
+        oneOf:
+        - "$ref": "#/$defs/HecRasProcedureFunction"
+        - "$ref": "#/$defs/ProcedureFunction"
       parameters:
         type: array
         items:
           type: number
       time_interval:
-        "$ref": "topology.yml#/$defs/TimeInterval"
+        "$ref": "topology.json#/$defs/TimeInterval"
       time_offset:
-        "$ref": "topology.yml#/$defs/TimeInterval"
+        "$ref": "topology.json#/$defs/TimeInterval"
     required:
     - id
     - input_nodes
@@ -105,33 +103,9 @@ additionalProperties: false
           - type: number
     required:
     - type
-  QQProcedure:
+  HecRasProcedureFunction:
     allOf:
-    - "$ref": "#/$defs/Procedure"
-    properties:
-      type:
-        type: string
-        enum:
-        - QQ
-  PQProcedure:
-    allOf:
-    - "$ref": "#/$defs/Procedure"
-    properties:
-      type:
-        type: string
-        enum:
-        - PQ
-  MemProcedure:
-    allOf:
-    - "$ref": "#/$defs/Procedure"
-    properties:
-      type:
-        type: string
-        enum:
-        - Mem
-  HecRasProcedure:
-    allOf:
-    - "$ref": "#/$defs/Procedure"
+    - "$ref": "#/$defs/ProcedureFunction"
     properties:
       type:
         type: string
@@ -161,12 +135,4 @@ additionalProperties: false
     - workspace
     - model_path
     - project_name
-  LinearProcedure:
-    allOf:
-    - "$ref": "#/$defs/Procedure"
-    properties:
-      type:
-        type: string
-        enum:
-        - Linear
   additionalProperties: false
