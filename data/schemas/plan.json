@@ -122,9 +122,9 @@
         },
         "required": [
           "id",
-          "input_nodes",
-          "output_nodes",
-          "type"
+          "boundaries",
+          "outputs",
+          "function"
         ]
       },
       "NodeVariableIdTuple": {
@@ -232,4 +232,4 @@
       },
       "additionalProperties": false
     }
-}
+  }

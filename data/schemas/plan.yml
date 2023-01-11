@@ -67,9 +67,9 @@ additionalProperties: false
         "$ref": "topology.json#/$defs/TimeInterval"
     required:
     - id
-    - input_nodes
-    - output_nodes
-    - type
+    - boundaries
+    - outputs
+    - function
   NodeVariableIdTuple:
     type: array
     minItems: 2
