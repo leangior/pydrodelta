@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
 ---
-"$id": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json
+"$id": "https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.yml"
 schema: https://json-schema.org/draft/2020-12/schema
 title: Topology
 type: object
@@ -94,22 +94,22 @@ required:
       name:
         type: string
       series:
-        description: Input timeseries for the node in order of priority
+        description: Input timeseries for the variable in order of priority
         type: array
         items:
           "$ref": "#/$defs/NodeSerie"
       series_prono:
-        description: Input timeseries for the node, forecasted
+        description: Input timeseries for the variable, forecasted
         type: array
         items:
           "$ref": "#/$defs/NodeSerieProno"
       series_output:
-        description: Output timeseries for the node (as result of analysis)
+        description: Output timeseries for the variable (as result of analysis)
         type: array
         items:
           "$ref": "#/$defs/NodeSerie"
       series_sim:
-        description: Simulation output timeseries for the node (as result of Plan
+        description: Simulation output timeseries for the variable (as result of Plan
           execution)
         type: array
         items:

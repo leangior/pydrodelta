@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from pydrodelta.procedure_function import ProcedureFunction, ProcedureFunctionResults
 
 # from pyras.controllers import RAS41, kill_ras
 # from pyras.controllers.hecras import ras_constants as RC
@@ -26,111 +27,130 @@ class ModelConfig():
         self.plan_file = params["plan_file"]
         self.unsteady_file = params["unsteady_file"]
 
-def createHecRasProcedure(procedure,params,plan=None):
-    procedure.workspace = params["workspace"]
-    procedure.model_path = params["model_path"]
-    if params["initial_load"]:
-        procedure.initial_load = True
-        procedure.loadTopologyFromModel()
-    else:
-        procedure.initial_load = False
-        # self.loadTopology()
-    procedure.project_name = params["project_name"]
-    if "model_config" in params:
-        procedure.model_config = ModelConfig(params["model_config"])
-    procedure.loadTopologyFromModel = lambda : loadTopologyFromModel(procedure)
-    procedure.run = lambda inline=True : run(procedure,inline)
+class HecRasProcedureFunction(ProcedureFunction):
+    def __init__(self,params):
+        super().__init__(params)
+        self.workspace = params["workspace"]
+        self.model_path = params["model_path"]
+        if params["initial_load"]:
+            self.initial_load = True
+            self.loadTopologyFromModel()
+        else:
+            self.initial_load = False
+            # self.loadTopology()
+        self.project_name = params["project_name"]
+        if "model_config" in params:
+            self.model_config = ModelConfig(params["model_config"])
+    def loadTopologyFromModel(self):
+        self.model_config = {}
+        self.model_config['project_name'] = self.project_name
+        ## Abre Modelo
+        rc_f = AbreModelo(self.model_path,self.project_name)
+        ## Current Files
+        GeomFile, PlanFile, UnSteadyFile = InfoModelo(rc_f)
+        self.model_config['geometry_file'] = GeomFile
+        self.model_config['plan_file'] = PlanFile
+        self.model_config['unsteady_file'] = UnSteadyFile
+        ## Lee Condicion de Borde del .u
+        self.boundary_conditions = LeeCB(self.model_path,self.project_name,self.unsteady_file)
+        # print(df_ListaCB)
+        ## Lee Puntos de salida en el plan.
+        self.output_sections = SalidasPaln(self.model.path,self.project_name,self.plan_file)
+        # print(self.output_sections)
+        rc_f.close()
+        self.boundary_conditions.to_csv(self.workspace+'/1_Lista_CB_0.csv',sep=',',index=False)
+        self.output_sections.to_csv(self.workspace+'/2_Lista_Salidas_0.csv',sep=',',index=False)
+        ##  Escribe Archivo config
+        # with open(workspace+'/config_Modelo.json', 'w') as fp:
+        #     json.dump(self.model_config, fp)
+        # fp.close()
+        # quit()
 
-def run(procedure,inline=True):
-    """run procedure. Produces pivoted dataframe of output series with index of located datetimes, column names of node id's and values as floats.
-    
-    :param inline: save output inline (self.output). Default: True
-    :type inline: bool
-    :returns: procedure output result as dataframe if inline=False, else None
-    """
-    ListaCB = [] # pd.read_csv(self.workspace+'1_Lista_CB.csv',sep=',')
 
-    # df_SeccSalidas = pd.read_csv(self.workspace+'2_Lista_Salidas.csv',sep=',')
-    # df_SeccSalidas['River_Stat'] = df_SeccSalidas['River_Stat'].astype(int)
-
-    procedure.loadInput()
-    df_base = procedure.input.copy()
-    
-    # df_base = pd.DataFrame()
-    for node in procedure.input_nodes: #df_ListaCB.iterrows():
-        print("node %s" % str(node.id))
-    #     df_i = node.concatenateProno(inline=False) # cargaSeries(node['series_id'],f_inicio_0,f_fin_0,serieID_prono=node['series_simulada'])
+    def run(self,input=None, inline=True):
+        """run procedure. Produces list of SeriesData of output series with index of located datetimes, column names of 'valor' and values as floats.
         
-    #     df_i = df_i.rename(columns={'valor':node.id}) #,'Tipo':'Tipo'+str(node['FID'])})
-    #     df_base = df_base.join(df_i, how = 'outer')
-        cb = node.hec_node.copy()
-        cb["FID"] = node.id
-        cb["name"] = node.name
-        ListaCB.append(cb)
+        :param inline: save output inline (self.output). Default: True
+        :type inline: bool
+        :returns: procedure output result as list of SeriesData if inline=False, else None
+        """
+        ListaCB = [] # pd.read_csv(self.workspace+'1_Lista_CB.csv',sep=',')
+
+        # df_SeccSalidas = pd.read_csv(self.workspace+'2_Lista_Salidas.csv',sep=',')
+        # df_SeccSalidas['River_Stat'] = df_SeccSalidas['River_Stat'].astype(int)
+        if input is None:
+            input = self._procedure.loadInput(inline=False,pivot=True)
+        
+        # df_base = pd.DataFrame()
+        for boundary in self._procedure.boundaries: #df_ListaCB.iterrows():
+            print("node %s variable %s" % (str(boundary.node_id),boundary.var_id))
+        #     df_i = node.concatenateProno(inline=False) # cargaSeries(node['series_id'],f_inicio_0,f_fin_0,serieID_prono=node['series_simulada'])
             
-    project_name = procedure.project_name
-    CurrentUnSteadyFile = procedure.model_config.unsteady_file
-    CurrentPlanFile = procedure.model_config.plan_file
+        #     df_i = df_i.rename(columns={'valor':node.id}) #,'Tipo':'Tipo'+str(node['FID'])})
+        #     df_base = df_base.join(df_i, how = 'outer')
+            cb = boundary.hec_node.copy()
+            cb["FID"] = boundary.id
+            cb["name"] = boundary.name
+            ListaCB.append(cb)
+                
+        project_name = self.project_name
+        CurrentUnSteadyFile = self.model_config.unsteady_file
+        CurrentPlanFile = self.model_config.plan_file
 
-    f_inicio = df_base.index[0]
-    f_fin  = df_base.index[-1]
+        f_inicio = input.index[0]
+        f_fin  = input.index[-1]
 
-    # EDITA ARCHIVO DE CONDICIONES DE BORDE (.u)
-    EditConBorde(procedure.model_path,project_name,CurrentUnSteadyFile,pd.DataFrame(ListaCB),f_inicio,f_fin,df_base)  # EDITA ARCHIVO DE CONDICIONES DE BORDE (.u)
+        # EDITA ARCHIVO DE CONDICIONES DE BORDE (.u)
+        EditConBorde(self.model_path,project_name,CurrentUnSteadyFile,pd.DataFrame(ListaCB),f_inicio,f_fin,input)  # EDITA ARCHIVO DE CONDICIONES DE BORDE (.u)
 
-    f_condBorde = f_inicio + timedelta(days=5)
-    EditaPlan(procedure.model_path,project_name,CurrentPlanFile,f_inicio,f_fin,f_condBorde)
+        f_condBorde = f_inicio + timedelta(days=5)
+        EditaPlan(self.model_path,project_name,CurrentPlanFile,f_inicio,f_fin,f_condBorde)
 
-    print ('HEC-RAS:')
-    hec_model = AbreModelo(procedure.model_path,project_name)
-    correModelo(hec_model)
+        print ('HEC-RAS:')
+        hec_model = AbreModelo(self.model_path,project_name)
+        correModelo(hec_model)
 
-    ################################################################################################
-    SeccSalidas = []
-    for node in procedure.output_nodes:
-        ss = node.hec_node.copy()
-        ss["FID"] = node.id
-        ss["name"] = node.name
-        SeccSalidas.append(ss)
+        ################################################################################################
+        SeccSalidas = []
+        for boundary in self._procedure.outputs:
+            ss = boundary._node.hec_node.copy()
+            ss["FID"] = boundary.node_id
+            ss["name"] = boundary._node.name
+            SeccSalidas.append(ss)
 
-    output , list_1 = ExtraeSimulados_aDFyDic(hec_model,pd.DataFrame(SeccSalidas),plotear=False,pivot=True)
-    output = output.reset_index(drop=True)
+        output , list_1 = ExtraeSimulados_aDFyDic(hec_model,pd.DataFrame(SeccSalidas),plotear=False,pivot=True)
+        output = output.reset_index(drop=True)
 
-    # Cierra el modelo
-    hec_model.close()
+        # Cierra el modelo
+        hec_model.close()
 
-    # Guarda en CSV
-    output.to_csv(procedure.workspace+'Salidas.csv', index=False, sep=',')
+        # Guarda en CSV
+        output.to_csv(self.workspace+'Salidas.csv', index=False, sep=',')
 
-    if inline:
-        procedure.output = output
-    else:
-        return output
+        if inline:
+            self.output = output
+        else:
+            return output
 
-def loadTopologyFromModel(procedure):
-    procedure.model_config = {}
-    procedure.model_config['project_name'] = procedure.project_name
-    ## Abre Modelo
-    rc_f = AbreModelo(procedure.model_path,procedure.project_name)
-    ## Current Files
-    GeomFile, PlanFile, UnSteadyFile = InfoModelo(rc_f)
-    procedure.model_config['geometry_file'] = GeomFile
-    procedure.model_config['plan_file'] = PlanFile
-    procedure.model_config['unsteady_file'] = UnSteadyFile
-    ## Lee Condicion de Borde del .u
-    procedure.boundary_conditions = LeeCB(procedure.model_path,procedure.project_name,procedure.unsteady_file)
-    # print(df_ListaCB)
-    ## Lee Puntos de salida en el plan.
-    procedure.output_sections = SalidasPaln(procedure.model.path,procedure.project_name,procedure.plan_file)
-    # print(self.output_sections)
-    rc_f.close()
-    procedure.boundary_conditions.to_csv(procedure.workspace+'/1_Lista_CB_0.csv',sep=',',index=False)
-    procedure.output_sections.to_csv(procedure.workspace+'/2_Lista_Salidas_0.csv',sep=',',index=False)
-    ##  Escribe Archivo config
-    # with open(workspace+'/config_Modelo.json', 'w') as fp:
-    #     json.dump(self.model_config, fp)
-    # fp.close()
-    # quit()
+
+
+
+
+# def createHecRasProcedure(procedure,params,plan=None):
+#     procedure.workspace = params["workspace"]
+#     procedure.model_path = params["model_path"]
+#     if params["initial_load"]:
+#         procedure.initial_load = True
+#         procedure.loadTopologyFromModel()
+#     else:
+#         procedure.initial_load = False
+#         # self.loadTopology()
+#     procedure.project_name = params["project_name"]
+#     if "model_config" in params:
+#         procedure.model_config = ModelConfig(params["model_config"])
+#     procedure.loadTopologyFromModel = lambda : loadTopologyFromModel(procedure)
+#     procedure.run = lambda inline=True : run(procedure,inline)
+
 
 
 # Abrel el modelo

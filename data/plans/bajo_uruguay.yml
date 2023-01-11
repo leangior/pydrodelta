@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/plan.yml
+---
+name: bajo_uruguay
+id: 485
+topology: data/topologies/bajo_uruguay.yml
+procedures:
+- id: 1
+  function:
+    type: HecRas
+  boundaries:
+  - [1,87]
+  - [2,85]
+  output_nodes:
+  - [3,85]
+  - [4,85]
+  - [5,85]
+  - [6,85]
+  - [7,85]
+  - [8,85]
+  - [9,85]
+  - [10,85]
+  - [11,85]
+  - [12,85]
+  - [2,85]
+  workspace: "/home/leyden/Downloads/HIDROURU_4D"
+  model_path: "/home/leyden/Downloads/HIDROURU_4D/Modelo/"
+  initial_load: false
+  project_name: UruguayBajo
+  model_config:
+    geometry_file: g01
+    plan_file: p01
+    unsteady_file: u01

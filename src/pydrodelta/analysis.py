@@ -25,6 +25,10 @@ config_file.close()
 logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
 logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
 
+class SeriesData(pandas.DataFrame):
+    def __init__(self, *args, **kwargs):
+        super(SeriesData, self).__init__(*args, **kwargs)
+
 class NodeSerie():
     def __init__(self,params):
         self.series_id = params["series_id"]

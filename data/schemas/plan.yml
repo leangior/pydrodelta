@@ -1,5 +1,5 @@
 ---
-"$id": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/plan.json
+"$id": "https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/plan.yml"
 "$schema": https://json-schema.org/draft/2020-12/schema
 title: Plan
 type: object
@@ -13,7 +13,7 @@ properties:
   topology:
     description: Either topology object or topology file path
     oneOf:
-    - "$ref": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json
+    - "$ref": "/topology.yml"
     - type: string
   procedures:
     type: array
@@ -39,46 +39,71 @@ additionalProperties: false
         oneOf:
         - type: integer
         - type: string
-      input_nodes:
-        description: Either array of Node objects or identifiers of topology nodes
+      boundaries:
+        description: Either array of NodeVariables objects or tuple with node id and variable id
         type: array
         items:
           oneOf:
-          - "$ref": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json#/$defs/Node
-          - type: string
-          - type: integer
-      output_nodes:
+          - "$ref": "topology.yml#/$defs/NodeVariable"
+          - "$ref": "#/$defs/NodeVariableIdTuple"
+      outputs:
+        description: "output node variables where to write procedure outcome"
         type: array
         items:
           oneOf:
-          - "$ref": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json#/$defs/Node
-          - type: string
-          - type: integer
+          - "$ref": "topology.yml#/$defs/NodeVariable"
+          - "$ref": "#/$defs/NodeVariableIdTuple"
       initial_states:
         type: array
         items:
           type: number
-      type:
-        description: type of procedure. One of 'QQ','PQ','Mem','HecRas','Linear'
-        type: string
-        enum:
-        - QQ
-        - PQ
-        - Mem
-        - HecRas
-        - Linear
+      function:
+        "$ref": "#/$defs/ProcedureFunction"
       parameters:
         type: array
         items:
           type: number
       time_interval:
-        "$ref": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json#/$defs/TimeInterval
+        "$ref": "topology.yml#/$defs/TimeInterval"
       time_offset:
-        "$ref": https://raw.githubusercontent.com/jbianchi81/pydrodelta/main/data/schemas/topology.json#/$defs/TimeInterval
+        "$ref": "topology.yml#/$defs/TimeInterval"
     required:
     - id
     - input_nodes
     - output_nodes
+    - type
+  NodeVariableIdTuple:
+    type: array
+    minItems: 2
+    maxItems: 2
+    items:
+      type: integer
+  ProcedureFunction:
+    type: object
+    description: The transformation function of the procedure 
+    properties:
+      type:
+        description: The id or class name of the procedureFunction type. One of 'ProcedureFunction', 'HecRasProcedureFunction', 'HecRas'
+        type: string
+        enum:
+        - ProcedureFunction
+        - HecRasProcedureFunction
+        - HecRas
+      parameters:
+        description: list of function parameter values
+        type: array
+        items:
+          oneOf:
+          - type: string
+          - type: number
+      initial_states:
+        description: list of function initial state values
+        type: array
+        items:
+          oneOf:
+          - type: string
+          - type: number
+    required:
     - type
   QQProcedure:
     allOf:
