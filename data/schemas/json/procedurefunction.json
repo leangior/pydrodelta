@@ -1,0 +1,50 @@
+{
+    "$id": "procedurefunction.json",
+    "$schema":"https://json-schema.org/draft/2020-12/schema",
+    "title": "ProcedureFunction",
+    "type": "object",
+    "description": "The transformation function of the procedure",
+    "properties": {
+      "type": {
+        "description": "The id or class name of the procedureFunction type. One of 'ProcedureFunction', 'HecRasProcedureFunction', 'HecRas'",
+        "type": "string",
+        "enum": [
+          "ProcedureFunction",
+          "HecRasProcedureFunction",
+          "HecRas"
+        ]
+      },
+      "parameters": {
+        "description": "list of function parameter values",
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "initial_states": {
+        "description": "list of function initial state values",
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    "required": [
+      "type"
+    ]
+  }
+  

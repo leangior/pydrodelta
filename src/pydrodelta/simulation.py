@@ -13,6 +13,7 @@ from pydrodelta.a5 import createEmptyObsDataFrame
 import numpy as np
 import click
 import sys
+from pathlib import Path
 
 config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = yaml.load(config_file,yaml.CLoader)
@@ -23,13 +24,22 @@ logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filen
 
 
 schemas = {}
-plan_schema = open("%s/data/schemas/plan.yml" % os.environ["PYDRODELTA_DIR"])
+plan_schema = open("%s/data/schemas/json/plan.json" % os.environ["PYDRODELTA_DIR"])
 schemas["plan"] = yaml.load(plan_schema,yaml.CLoader)
 
+base_path = Path("%s/data/schemas/json" % os.environ["PYDRODELTA_DIR"])
+resolver = jsonschema.validators.RefResolver(
+    base_uri=f"{base_path.as_uri()}/",
+    referrer=True,
+)
 
 class Plan():
     def __init__(self,params):
-        jsonschema.validate(params,schemas["plan"])
+        jsonschema.validate(
+            instance=params,
+            schema=schemas["plan"],
+            resolver=resolver
+        )
         self.name = params["name"]
         self.id = params["id"]
         if isinstance(params["topology"],dict):
@@ -71,9 +81,9 @@ class ProcedureBoundary():
     A variable at a node which is used as a procedure boundary condition
     """
     def __init__(self,params,plan=None):
-        self.name = params.name
-        self.node_id = params.node_id
-        self.var_id = params.var_id
+        self.node_id = int(params[0])
+        self.var_id = int(params[1])
+        self.name = str(params[2]) if len(params) > 2 else "%i_%i" % (self.node_id, self.var_id)
         if plan is not None:
             self.setNodeVariable(plan)
         else:
@@ -105,10 +115,10 @@ class Procedure():
             self.function_type = ProcedureFunction
         # self.function = self.function_type(params["function"])
         if isinstance(params["function"],dict): # read params from dict
-            self.function = self.function_type(params["function"])
+            self.function = self.function_type(params["function"],self)
         else: # if not, read from file
             f = open(params["function"])
-            self.function = self.function_type(json.load(f))
+            self.function = self.function_type(json.load(f),self)
             f.close()
         # self.procedure_type = params["procedure_type"]
         self.parameters = params["parameters"] if "parameters" in params else []
@@ -124,7 +134,7 @@ class Procedure():
             for boundary in self.boundaries:
                 if boundary._variable.data is not None and len(boundary._variable.data):
                     rsuffix = "_%s_%i" % (str(boundary.node_id), boundary.var_id) 
-                    data = data.join(boundary._variable.data[columns][boundary.data.valor.notnull()],how='outer',rsuffix=rsuffix,sort=True)
+                    data = data.join(boundary._variable.data[columns][boundary._variable.data.valor.notnull()],how='outer',rsuffix=rsuffix,sort=True)
             for column in columns:
                 del data[column]
             # data = data.replace({np.NaN:None})

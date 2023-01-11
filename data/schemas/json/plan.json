@@ -1,5 +1,5 @@
 {
-    "$id": "data/schemas/json/plan.json",
+    "$id": "plan.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Plan",
     "type": "object",
@@ -98,12 +98,12 @@
             }
           },
           "function": {
-            "oneOf": [
+            "anyOf": [
               {
-                "$ref": "#/$defs/HecRasProcedureFunction"
+                "$ref": "hecrasprocedurefunction.json"
               },
               {
-                "$ref": "#/$defs/ProcedureFunction"
+                "$ref": "procedurefunction.json"
               }
             ]
           },
@@ -130,105 +130,17 @@
       "NodeVariableIdTuple": {
         "type": "array",
         "minItems": 2,
-        "maxItems": 2,
+        "maxItems": 3,
         "items": {
-          "type": "integer"
+          "oneOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "string"
+            }
+          ]
         }
-      },
-      "ProcedureFunction": {
-        "type": "object",
-        "description": "The transformation function of the procedure",
-        "properties": {
-          "type": {
-            "description": "The id or class name of the procedureFunction type. One of 'ProcedureFunction', 'HecRasProcedureFunction', 'HecRas'",
-            "type": "string",
-            "enum": [
-              "ProcedureFunction",
-              "HecRasProcedureFunction",
-              "HecRas"
-            ]
-          },
-          "parameters": {
-            "description": "list of function parameter values",
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            }
-          },
-          "initial_states": {
-            "description": "list of function initial state values",
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            }
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
-      "HecRasProcedureFunction": {
-        "allOf": [
-          {
-            "$ref": "#/$defs/ProcedureFunction"
-          }
-        ],
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "HecRas"
-            ]
-          },
-          "workspace": {
-            "description": "path of workspace",
-            "type": "string"
-          },
-          "model_path": {
-            "description": "path of model",
-            "type": "string"
-          },
-          "initial_load": {
-            "description": "if true, generates topology from model files",
-            "type": "boolean"
-          },
-          "project_name": {
-            "type": "string"
-          },
-          "model_config": {
-            "type": "object",
-            "properties": {
-              "geometry_file": {
-                "type": "string"
-              },
-              "plan_file": {
-                "type": "string"
-              },
-              "unsteady_file": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "required": [
-          "workspace",
-          "model_path",
-          "project_name"
-        ]
       },
       "additionalProperties": false
     }

@@ -4,6 +4,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from pydrodelta.procedure_function import ProcedureFunction, ProcedureFunctionResults
+from pathlib import Path
+import jsonschema
+import yaml
+
+schemas = {}
+plan_schema = open("%s/data/schemas/json/hecrasprocedurefunction.json" % os.environ["PYDRODELTA_DIR"])
+schemas["HecRasProcedureFunction"] = yaml.load(plan_schema,yaml.CLoader)
+
+
+base_path = Path("%s/data/schemas/json" % os.environ["PYDRODELTA_DIR"])
+resolver = jsonschema.validators.RefResolver(
+    base_uri=f"{base_path.as_uri()}/",
+    referrer=True,
+)
 
 # from pyras.controllers import RAS41, kill_ras
 # from pyras.controllers.hecras import ras_constants as RC
@@ -28,19 +42,37 @@ class ModelConfig():
         self.unsteady_file = params["unsteady_file"]
 
 class HecRasProcedureFunction(ProcedureFunction):
-    def __init__(self,params):
-        super().__init__(params)
+    def __init__(self,params,procedure):
+        super().__init__(params,procedure)
+        jsonschema.validate(
+            instance=params,
+            schema=schemas["HecRasProcedureFunction"],
+            resolver=resolver)
         self.workspace = params["workspace"]
         self.model_path = params["model_path"]
+        self.project_name = params["project_name"]
+        # check model location
+        if not os.path.exists(self.workspace):
+            raise Exception("HecRasProcedureFunction workspace not found on filesystem")
+        if not os.path.exists(self.model_path):
+            raise Exception("HecRasProcedureFunction workspace not found on filesystem")
+        if "model_config" in params:
+            self.model_config = ModelConfig(params["model_config"])
+            self.p_file = Path(self.model_path, "%s.%s" % (self.project_name, self.model_config.plan_file))
+            if not os.path.exists(self.model_path):
+                raise Exception("HecRasProcedureFunction plan file not found on model path")
+            self.g_file = Path(self.model_path, "%s.%s" % (self.project_name, self.model_config.geometry_file))
+            if not os.path.exists(self.model_path):
+                raise Exception("HecRasProcedureFunction geometry file not found on model path")
+            self.u_file = Path(self.model_path, "%s.%s" % (self.project_name, self.model_config.unsteady_file))
+            if not os.path.exists(self.model_path):
+                raise Exception("HecRasProcedureFunction unsteady file not found on model path")
         if params["initial_load"]:
             self.initial_load = True
             self.loadTopologyFromModel()
         else:
             self.initial_load = False
             # self.loadTopology()
-        self.project_name = params["project_name"]
-        if "model_config" in params:
-            self.model_config = ModelConfig(params["model_config"])
     def loadTopologyFromModel(self):
         self.model_config = {}
         self.model_config['project_name'] = self.project_name
@@ -88,9 +120,9 @@ class HecRasProcedureFunction(ProcedureFunction):
             
         #     df_i = df_i.rename(columns={'valor':node.id}) #,'Tipo':'Tipo'+str(node['FID'])})
         #     df_base = df_base.join(df_i, how = 'outer')
-            cb = boundary.hec_node.copy()
-            cb["FID"] = boundary.id
-            cb["name"] = boundary.name
+            cb = boundary._node.hec_node.copy()
+            cb["FID"] = "valor_%s_%i" % (str(boundary.node_id), boundary.var_id)
+            cb["name"] = boundary._node.name
             ListaCB.append(cb)
                 
         project_name = self.project_name
@@ -114,7 +146,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         SeccSalidas = []
         for boundary in self._procedure.outputs:
             ss = boundary._node.hec_node.copy()
-            ss["FID"] = boundary.node_id
+            ss["FID"] = "valor_%s_%i" % (str(boundary.node_id), boundary.var_id)
             ss["name"] = boundary._node.name
             SeccSalidas.append(ss)
 
@@ -267,7 +299,7 @@ def LeeCB(rutaModelo,nombre_project,CurrentUnSteadyFile):
 # Escribe el Archivo de CB .u
 def EditConBorde(rutaModelo,nombre_project,CurrentUnSteadyFile,ListaCB,f_inicio,f_fin,df_series):  #FlowTitle,HEC_Vers,restNum,restNum2
     print ('Modifica condicion de borde(.u)')
-    ruta_ptU = rutaModelo+'/'+nombre_project+'.'+CurrentUnSteadyFile    #Ruta del archivo (.u) de condiciones de borde
+    ruta_ptU = Path(rutaModelo+'/'+nombre_project+'.'+CurrentUnSteadyFile)    #Ruta del archivo (.u) de condiciones de borde
     FlowTitle = None
     HEC_Vers = None
     RestCond = None
@@ -347,7 +379,7 @@ def EditConBorde(rutaModelo,nombre_project,CurrentUnSteadyFile,ListaCB,f_inicio,
 # Lee Puntos de salida en el plan.
 def SalidasPaln(rutaModelo,nombre_project,CurrentPlanFile):
     print ('\n Lee puntos de Salidas')
-    ruta_plan = rutaModelo+'/'+nombre_project+'.'+CurrentPlanFile
+    ruta_plan = Path(rutaModelo+'/'+nombre_project+'.'+CurrentPlanFile)
     f_plan = open(ruta_plan,'r')							#Abre el plan para leerlo
     df_SalidasPlan =  pd.DataFrame(columns=['FID', 'River','Reach', 'River_Stat'])
     id = 0
@@ -375,8 +407,8 @@ def EditaPlan(rutaModelo,nombre_project,CurrentPlanFile,f_inicio,f_fin,f_condBor
 	f_fin_Hdin = f_fin.strftime('%d%b%Y')
 	f_condBorde = f_condBorde.strftime('%d%b%Y')
 
-	ruta_plan = rutaModelo+'/'+nombre_project+'.'+CurrentPlanFile
-	ruta_temp = rutaModelo+'/temp.'+CurrentPlanFile
+	ruta_plan = Path(rutaModelo+'/'+nombre_project+'.'+CurrentPlanFile)
+	ruta_temp = Path(rutaModelo+'/temp.'+CurrentPlanFile)
 	f_plan = open(ruta_plan,'r')							#Abre el plan para leerlo
 	temp = open(ruta_temp,'w')								#Crea un archivo temporal
 	for line in f_plan:										#Lee linea por linea el plan

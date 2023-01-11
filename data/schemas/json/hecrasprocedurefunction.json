@@ -1,0 +1,53 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "hecrasprocedurefunction.json",
+    "title": "HecRasProcedureFunction",
+    "type": "object",
+    "allOf": [
+        {
+            "$ref": "procedurefunction.json"
+        }
+    ],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "HecRas"
+            ]
+        },
+        "workspace": {
+            "description": "path of workspace",
+            "type": "string"
+        },
+        "model_path": {
+            "description": "path of model",
+            "type": "string"
+        },
+        "initial_load": {
+            "description": "if true, generates topology from model files",
+            "type": "boolean"
+        },
+        "project_name": {
+            "type": "string"
+        },
+        "model_config": {
+            "type": "object",
+            "properties": {
+                "geometry_file": {
+                    "type": "string"
+                },
+                "plan_file": {
+                    "type": "string"
+                },
+                "unsteady_file": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "workspace",
+        "model_path",
+        "project_name"
+    ]
+}
