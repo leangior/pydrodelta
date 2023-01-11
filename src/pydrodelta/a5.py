@@ -1217,7 +1217,7 @@ schemas = {
         }
     }
 }
-serie_schema = open("%s/data/schemas/serie.yml" % os.environ["PYDRODELTA_DIR"])
+serie_schema = open("%s/data/schemas/yaml/serie.yml" % os.environ["PYDRODELTA_DIR"])
 serie_schema = yaml.load(serie_schema,yaml.CLoader)
 
 def validate(instance,classname):

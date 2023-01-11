@@ -12,10 +12,17 @@ import yaml
 import dateutil.parser
 import sys
 import click
+from pathlib import Path
 
-#schema = open("%s/data/schemas/topology.json" % os.environ["PYDRODELTA_DIR"])
-schema = open("%s/data/schemas/topology.yml" % os.environ["PYDRODELTA_DIR"])
+schema = open("%s/data/schemas/json/topology.json" % os.environ["PYDRODELTA_DIR"])
+#schema = open("%s/data/schemas/yaml/topology.yml" % os.environ["PYDRODELTA_DIR"])
 schema = yaml.load(schema,yaml.CLoader)
+
+base_path = Path("%s/data/schemas/json" % os.environ["PYDRODELTA_DIR"])
+resolver = jsonschema.validators.RefResolver(
+    base_uri=f"{base_path.as_uri()}/",
+    referrer=True,
+)
 
 # config_file = open("%s/config/config.json" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
@@ -24,6 +31,10 @@ config_file.close()
 
 logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
 logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
+
+class SeriesData(pandas.DataFrame):
+    def __init__(self, *args, **kwargs):
+        super(SeriesData, self).__init__(*args, **kwargs)
 
 class NodeSerie():
     def __init__(self,params):
@@ -839,7 +850,10 @@ class InterpolatedOrigin:
 
 class Topology():
     def __init__(self,params,plan=None):
-        jsonschema.validate(instance=params,schema=schema)
+        jsonschema.validate(
+            instance=params,
+            schema=schema,
+            resolver=resolver)
         self.timestart = util.tryParseAndLocalizeDate(params["timestart"])
         self.timeend = util.tryParseAndLocalizeDate(params["timeend"])
         self.forecast_timeend = util.tryParseAndLocalizeDate(params["forecast_timeend"]) if "forecast_timeend" in params else None
