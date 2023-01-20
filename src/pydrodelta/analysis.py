@@ -138,6 +138,13 @@ class NodeSerie():
         if remove_nulls:
             obs_list = [x for x in obs_list if x["valor"] is not None] # remove nulls
         return obs_list
+    def toDict(self,timeSupport=None,as_prono=False,remove_nulls=False,max_obs_date:datetime=None):
+        obs_list = self.toList(include_series_id=False,timeSupport=timeSupport,remove_nulls=remove_nulls,max_obs_date=max_obs_date)
+        series_table = "series" if self.type == "puntual" else "series_areal" if self.type == "areal" else "series_rast" if self.type == "raster" else "series"
+        if as_prono:
+            return {"series_id": self.series_id, "series_table": series_table, "pronosticos": obs_list}
+        else:
+            return {"series_id": self.series_id, "series_table": series_table, "observaciones": obs_list}
 
 class NodeSerieProno(NodeSerie):
     def __init__(self,params):
@@ -344,18 +351,25 @@ class NodeVariable:
             self.setOutputData()
         list = []
         for serie in self.series_output:
-            data = serie.data[serie.data.valor.notnull()].copy()
-            #data.loc[:,"timestart"] = data.index.copy()
-            data.reset_index(inplace=True)
-            data["timeend"] = data["timestart"] + self.time_support if self.time_support is not None else data["timestart"].copy() # [x + self.time_support for x in data.loc[:,"timestart"]] if self.time_support is not None else data.loc[:,"timestart"].copy()
-            data.loc[:,"timestart"] = [x.isoformat() for x in data.loc[:,"timestart"]]
-            data.loc[:,"timeend"] = [x.isoformat() for x in data.loc[:,"timeend"]]
             if flatten:
-                data.loc[:,"series_id"] = serie.series_id
-                list.extend(data.to_dict(orient="records"))
+                obs_list = serie.toList(include_series_id=True,timeSupport=self.time_support,remove_nulls=True)
+                list.extend(obs_list)
             else:
-                series_table = "series" if serie.type == "puntual" else "series_areal" if serie.type == "areal" else "series_rast" if serie.type == "raster" else "series"
-                list.append({"series_id": serie.series_id, "series_table": series_table, "observaciones": data.to_dict(orient="records")})
+                series_dict = serie.toDict(timeSupport=self.time_support, as_prono=False, remove_nulls=True)
+                list.append(series_dict)
+        return list
+    def pronoToList(self,flatten=True):
+        """
+        return series_prono as list of dict
+        if flatten == True, merges observations into single list. Else, returns list of series objects: [{series_id:int, observaciones:[{obs1},{obs2},...]},...]"""
+        list = []
+        for serie in self.series_prono:
+            if flatten:
+                prono_list = serie.toList(include_series_id=True,timeSupport=self.time_support,remove_nulls=True)
+                list.extend(prono_list)
+            else:
+                series_dict = serie.toDict(timeSupport=self.time_support, as_prono=True, remove_nulls=True)
+                list.append(series_dict)
         return list
     def adjust(self,plot=True,error_band=True):
         truth_data = self.series[self.adjust_from["truth"]].data
@@ -702,6 +716,15 @@ class Node:
         for variable in self.variables.values():
             list.append(variable.outputToList(flatten=flatten))
         return list
+    def variablesPronoToList(self,flatten=True):
+        """
+        if flatten=True return list of dict each containing one forecast time-value pair (pronosticos)
+        else returns list of dict each containing series_id:int and pronosticos:list 
+        """
+        list = []
+        for variable in self.variables.values():
+            list.extend(variable.pronoToList(flatten=flatten))
+        return list
     def adjust(self,plot=True,error_band=True):
         for variable in self.variables.values():
             if variable.adjust_from is not None:
@@ -1017,7 +1040,7 @@ class Topology():
             return data.to_dict(orient="records")
         obs_list = []
         for node in self.nodes:
-            obs_list.extend(node.outputToList(flatten=flatten))
+            obs_list.extend(node.variablesOutputToList(flatten=flatten))
         return obs_list
     def saveData(self,file : str,format="csv",pivot=False):
         f = open(file,"w")
@@ -1048,7 +1071,7 @@ class Topology():
             obs_created = node.uploadData()
             created.extend(obs_created)
         return created
-    def uploadDataAsProno(self):
+    def uploadDataAsProno(self,include_obs=True,include_prono=False):
         if self.cal_id is None:
             raise Exception("Missing required parameter cal_id")
         prono = {
@@ -1056,12 +1079,17 @@ class Topology():
             "forecast_date": self.timeend.isoformat(),
             "series": []
         }
-        for node in self.nodes:
-            serieslist = node.outputToList(flatten=False)
-            for serie in serieslist:
-                serie["pronosticos"] = serie["observaciones"]
-                del serie["observaciones"]
-            prono["series"].extend(serieslist)
+        if include_obs:
+            for node in self.nodes:
+                serieslist = node.variablesOutputToList(flatten=False)
+                for serie in serieslist:
+                    serie["pronosticos"] = serie["observaciones"]
+                    del serie["observaciones"]
+                prono["series"].extend(serieslist)
+        if include_prono:
+            for node in self.nodes:
+                serieslist = node.variablesPronoToList(flatten=False)
+                prono["series"].extend(serieslist)
         return output_crud.createCorrida(prono)
 
     def pivotData(self,include_tag=True,use_output_series_id=True,use_node_id=False,nodes=None):
