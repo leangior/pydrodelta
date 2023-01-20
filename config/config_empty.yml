@@ -1,8 +1,9 @@
 log:
   filename: log/analysis.log
-api:
-  username: ""
-  password: ""
+input_api:
+  url: ""
+  token: ""
+output_api:
   url: ""
   token: ""
 proxy_dict:

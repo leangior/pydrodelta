@@ -2,22 +2,26 @@ import pydrodelta.analysis as analysis
 import jsonschema
 import json
 # import pydrodelta.Auto_HECRAS as AutoHEC
-# import pydrodelta.a5 as a5
 import pydrodelta.util as util
 import logging
 from  pydrodelta.hecras import HecRasProcedureFunction
+from pydrodelta.polynomial import PolynomialTransformationProcedureFunction
 import os
 import yaml
 from pydrodelta.procedure_function import ProcedureFunction, ProcedureFunctionResults
-from pydrodelta.a5 import createEmptyObsDataFrame
+from pydrodelta.a5 import Crud, createEmptyObsDataFrame
 import numpy as np
 import click
 import sys
 from pathlib import Path
+from datetime import datetime 
+
 
 config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
+
+output_crud = Crud(config["output_api"])
 
 logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
 logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
@@ -50,7 +54,11 @@ class Plan():
             self.topology = analysis.Topology(yaml.load(f,yaml.CLoader),plan=self)
             f.close()
         self.procedures = [Procedure(x,self) for x in params["procedures"]]
-    def execute(self,include_prono=True):
+        self.forecast_date = util.tryParseAndLocalizeDate(params["forecast_date"]) if "forecast_date" in params else datetime.now()
+        self.time_interval = util.interval2timedelta(params["time_interval"]) if "time_interval" in params else None
+        if self.time_interval is not None:
+            self.forecast_date = util.roundDownDate(self.forecast_date,self.time_interval)
+    def execute(self,include_prono=True,upload=True):
         """
         Runs analysis and then each procedure sequentially
 
@@ -61,6 +69,30 @@ class Plan():
         self.topology.batchProcessInput(include_prono=include_prono)
         for procedure in self.procedures:
             procedure.run()
+            procedure.outputToNodes()
+        if upload:
+            self.uploadSim()
+    def toCorrida(self):
+        series_sim = []
+        for node in self.topology.nodes:
+            for variable in node.variables.values():
+                if variable.series_sim is not None:
+                    for serie in variable.series_sim:
+                        if serie.data is None:
+                            logging.warn("Missing data for series sim:%i, variable:%i, node:%i" % (serie.series_id, variable.id, node.id))
+                            continue
+                        series_sim.append({
+                            "series_id": serie.series_id,
+                            "pronosticos": serie.toList(remove_nulls=True)
+                        })
+        return {
+            "cal_id": self.id,
+            "forecast_date": self.forecast_date.isoformat(),
+            "series": series_sim 
+        }
+    def uploadSim(self):
+        corrida = self.toCorrida()
+        return output_crud.createCorrida(corrida)
 
 # def createProcedure(procedure,plan):
 #     if procedure["type"] in procedureClassDict:
@@ -150,7 +182,7 @@ class Procedure():
 
         :param inline: if True, writes output to self.output, else returns output (array of seriesData)
         """
-        output = self.function.run()
+        output, procedure_function_results = self.function.run(input=None)
         if inline:
             self.output = output
         else:
@@ -192,7 +224,7 @@ class Procedure():
                 serie.setData(data=self.output[index]) # self.getOutputNodeData(o.node_id,o.var_id))
                 serie.applyOffset()
             index = index + 1
-
+    
 # class ProcedureType():
 #     def __init__(self,params):
 #         self.name = params["name"]
@@ -234,7 +266,9 @@ class Procedure():
 procedureFunctionDict = {
     "ProcedureFunction": ProcedureFunction,
     "HecRas": HecRasProcedureFunction,
-    "HecRasProcedureFunction": HecRasProcedureFunction
+    "HecRasProcedureFunction": HecRasProcedureFunction,
+    "PolynomialTransformationProcedureFunction": PolynomialTransformationProcedureFunction,
+    "Polynomial": PolynomialTransformationProcedureFunction
 }
 
 

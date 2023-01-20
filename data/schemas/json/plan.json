@@ -8,14 +8,7 @@
         "type": "string"
       },
       "id": {
-        "oneOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "integer"
-          }
-        ]
+        "type": "integer"
       },
       "topology": {
         "description": "Either topology object or topology file path",
@@ -40,6 +33,12 @@
             }
           ]
         }
+      },
+      "forecast_date": {
+        "$ref": "dateorinterval.json"
+      },
+      "time_interval": {
+        "$ref": "timeinterval.json"
       }
     },
     "required": [
@@ -100,10 +99,13 @@
           "function": {
             "anyOf": [
               {
+                "$ref": "procedurefunction.json"
+              },
+              {
                 "$ref": "hecrasprocedurefunction.json"
               },
               {
-                "$ref": "procedurefunction.json"
+                "$ref": "polynomialtransformationprocedurefunction.json"
               }
             ]
           },
@@ -114,10 +116,10 @@
             }
           },
           "time_interval": {
-            "$ref": "topology.json#/$defs/TimeInterval"
+            "$ref": "timeinterval.json"
           },
           "time_offset": {
-            "$ref": "topology.json#/$defs/TimeInterval"
+            "$ref": "timeinterval.json"
           }
         },
         "required": [

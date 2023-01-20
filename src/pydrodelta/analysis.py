@@ -29,7 +29,10 @@ config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src
 config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
 
-logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
+input_crud = a5.Crud(config["input_api"])
+output_crud = a5.Crud(config["output_api"])
+
+logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
 logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
 
 class SeriesData(pandas.DataFrame):
@@ -51,7 +54,7 @@ class NodeSerie():
         self.jumps_data = None
     def loadData(self,timestart,timeend):
         logging.debug("Load data for series_id: %i" % (self.series_id))
-        self.metadata = a5.readSerie(self.series_id,timestart,timeend,tipo=self.type)
+        self.metadata = input_crud.readSerie(self.series_id,timestart,timeend,tipo=self.type)
         if len(self.metadata["observaciones"]):
             self.data = a5.observacionesListToDataFrame(self.metadata["observaciones"],tag="obs")
         else:
@@ -131,7 +134,7 @@ class NodeSerie():
         obs_list = data.to_dict(orient="records")
         for obs in obs_list:
             obs["valor"] = None if pandas.isna(obs["valor"]) else obs["valor"]
-            obs["tag"] = None if pandas.isna(obs["valor"]) else obs["valor"]
+            obs["tag"] = None if pandas.isna(obs["tag"]) else obs["tag"]
         if remove_nulls:
             obs_list = [x for x in obs_list if x["valor"] is not None] # remove nulls
         return obs_list
@@ -150,7 +153,7 @@ class NodeSerieProno(NodeSerie):
         self.metadata = None
     def loadData(self,timestart,timeend):
         logging.debug("Load prono data for series_id: %i, cal_id: %i" % (self.series_id, self.cal_id))
-        self.metadata = a5.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
+        self.metadata = input_crud.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
         if len(self.metadata["pronosticos"]):
             self.data = a5.observacionesListToDataFrame(self.metadata["pronosticos"],tag="prono")
         else:
@@ -257,7 +260,7 @@ class NodeVariable:
         if "id" not in params:
             raise ValueError("id of variable must be defined. Node id %i" % node.id)
         self.id = params["id"]
-        self.metadata = a5.readVar(self.id)
+        self.metadata = input_crud.readVar(self.id)
         self.fill_value = params["fill_value"] if "fill_value" in params else None
         self.series_output = [NodeSerie(x) for x in params["series_output"]] if "series_output" in params else [NodeSerie({"series_id": params["output_series_id"]})] if "output_series_id" in params else None
         self.series_sim = None
@@ -413,7 +416,7 @@ class NodeVariable:
             for serie in self.series_output:
                 obs_list = serie.toList(remove_nulls=True,max_obs_date=None if include_prono else self.max_obs_date if hasattr(self,"max_obs_date") else None) # include_series_id=True)
                 try:
-                    created = a5.createObservaciones(obs_list,series_id=serie.series_id)
+                    created = output_crud.createObservaciones(obs_list,series_id=serie.series_id)
                     obs_created.extend(created)
                 except Exception as e:
                     logging.error(str(e))
@@ -1059,7 +1062,7 @@ class Topology():
                 serie["pronosticos"] = serie["observaciones"]
                 del serie["observaciones"]
             prono["series"].extend(serieslist)
-        return a5.createCorrida(prono)
+        return output_crud.createCorrida(prono)
 
     def pivotData(self,include_tag=True,use_output_series_id=True,use_node_id=False,nodes=None):
         if nodes is None:

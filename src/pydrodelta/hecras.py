@@ -99,7 +99,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         # quit()
 
 
-    def run(self,input=None, inline=True):
+    def run(self,input=None):
         """run procedure. Produces list of SeriesData of output series with index of located datetimes, column names of 'valor' and values as floats.
         
         :param inline: save output inline (self.output). Default: True
@@ -159,10 +159,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         # Guarda en CSV
         output.to_csv(self.workspace+'Salidas.csv', index=False, sep=',')
 
-        if inline:
-            self.output = output
-        else:
-            return output
+        return output, ProcedureFunctionResults()
 
 
 

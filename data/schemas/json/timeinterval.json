@@ -1,0 +1,36 @@
+{
+    "$id": "timeinterval.json",
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "TimeInterval",
+    "anyOf": [
+        {
+            "type": "number"
+        },
+        {
+            "type": "object",
+            "properties": {
+                "hours": {
+                    "type": "number"
+                },
+                "minutes": {
+                    "type": "number"
+                },
+                "seconds": {
+                    "type": "number"
+                },
+                "milliseconds": {
+                    "type": "number"
+                },
+                "months": {
+                    "type": "number"
+                },
+                "days": {
+                    "type": "number"
+                }
+            },
+            "additionalProperties": false
+        }
+    ]
+}
+
+  

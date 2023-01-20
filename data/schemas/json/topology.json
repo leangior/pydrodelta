@@ -6,19 +6,19 @@
   "properties": {
     "timestart": {
       "description": "start date of observations period (datetime or timedelta relative to now)",
-      "$ref": "#/$defs/DateOrInterval"
+      "$ref": "dateorinterval.json"
     },
     "timeend": {
       "description": "end date of observations period (datetime or timedelta relative to now)",
-      "$ref": "#/$defs/DateOrInterval"
+      "$ref": "dateorinterval.json"
     },
     "forecast_timeend": {
       "description": "forecast horizon (datetime or timedelta relative to timeend)",
-      "$ref": "#/$defs/DateOrInterval"
+      "$ref": "dateorinterval.json"
     },
     "time_offset": {
       "description": "time of day where timesteps start",
-      "$ref": "#/$defs/DateOrInterval"
+      "$ref": "dateorinterval.json"
     },
     "nodes": {
       "description": "information nodes of the topology",
@@ -61,10 +61,10 @@
           "type": "string"
         },
         "geometry": {
-          "$ref": "#/$defs/Geometry"
+          "$ref": "geometry.json"
         },
         "time_interval": {
-          "$ref": "#/$defs/TimeInterval"
+          "$ref": "timeinterval.json"
         },
         "interpolation_limit": {
           "type": "number"
@@ -172,7 +172,7 @@
               "type": "number"
             },
             "x_offset": {
-              "$ref": "#/$defs/TimeInterval"
+              "$ref": "timeinterval.json"
             },
             "y_offset": {
               "type": "number"
@@ -200,7 +200,7 @@
               "type": "number"
             },
             "x_offset": {
-              "$ref": "#/$defs/TimeInterval"
+              "$ref": "timeinterval.json"
             },
             "y_offset": {
               "type": "number"
@@ -252,7 +252,7 @@
           }
         },
         "time_interval": {
-          "$ref": "#/$defs/TimeInterval"
+          "$ref": "timeinterval.json"
         }
       },
       "required": [
@@ -279,7 +279,7 @@
           "type": "number"
         },
         "x_offset": {
-          "$ref": "#/$defs/TimeInterval"
+          "$ref": "timeinterval.json"
         },
         "y_offset": {
           "type": "number"
@@ -288,7 +288,7 @@
           "type": "string"
         },
         "moving_average": {
-          "$ref": "#/$defs/TimeInterval"
+          "$ref": "timeinterval.json"
         }
       },
       "required": [
@@ -349,113 +349,6 @@
         "cal_id"
       ]
     },
-    "TimeInterval": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "hours": {
-              "type": "number"
-            },
-            "minutes": {
-              "type": "number"
-            },
-            "seconds": {
-              "type": "number"
-            },
-            "milliseconds": {
-              "type": "number"
-            },
-            "months": {
-              "type": "number"
-            },
-            "days": {
-              "type": "number"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "DateOrInterval": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "$ref": "#/$defs/TimeInterval"
-        }
-      ]
-    },
-    "Geometry": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "description": "tipo de geometría",
-          "type": "string",
-          "enum": [
-            "Point",
-            "MultiPoint",
-            "LineString",
-            "MultiLineString",
-            "Polygon",
-            "MultiPolygon",
-            "GeometryCollection"
-          ]
-        },
-        "coordinates": {
-          "description": "coordenadas",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Position"
-            },
-            {
-              "$ref": "#/$defs/LineString"
-            },
-            {
-              "$ref": "#/$defs/Polygon"
-            },
-            {
-              "$ref": "#/$defs/MultiPolygon"
-            }
-          ]
-        }
-      },
-      "required": [
-        "type",
-        "coordinates"
-      ]
-    },
-    "Position": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      },
-      "minItems": 2,
-      "maxItems": 3
-    },
-    "LineString": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/Position"
-      },
-      "minItems": 2
-    },
-    "Polygon": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/LineString"
-      }
-    },
-    "MultiPolygon": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/Polygon"
-      }
-    },
     "SeriesTipo": {
       "type": "string",
       "enum": [
@@ -511,7 +404,7 @@
           "description": "bounds of the x axis (dates or intervals)",
           "type": "array",
           "items": {
-            "href": "#/$defs/DateOrInterval"
+            "href": "dateorinterval.json"
           }
         },
         "ylim": {
