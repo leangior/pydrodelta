@@ -13,7 +13,9 @@
           "HecRasProcedureFunction",
           "HecRas",
           "Polynomial",
-          "PolynomialTransformationProcedureFunction"
+          "PolynomialTransformationProcedureFunction",
+          "MuskingumChannel",
+          "MuskingumChannelProcedureFunction"
         ]
       },
       "parameters": {

@@ -444,7 +444,7 @@ def plot_prono(obs_df:pandas.DataFrame,sim_df:pandas.DataFrame,output_file:str,t
         else:
             xlim[1] = xmax
     else:
-        xlim = (xmin,xmax)
+        xlim = [xmin,xmax]
     xlim[0] = roundDownDate(xlim[0],timedelta(days=1))
     xlim[1] = roundDownDate(xlim[1],timedelta(days=1))
     ax.set_xlim(xlim[0],xlim[1])

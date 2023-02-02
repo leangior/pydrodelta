@@ -1,0 +1,50 @@
+{
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "muskingumchannelprocedurefunction.json",
+    "title": "MuskingumChannelProcedureFunction",
+    "type": "object",
+    "description": "Método de tránsito hidrológico de la Oficina del río Muskingum. Dos parámetros: Tiempo de Tránsito (K) y Factor de forma (X) [Proc='Muskingum'] o . Condiciones Iniciales (initial_states): matriz de condiciones iniciales o valor escalar constante. Condiciones de borde: Hidrograma en nodo superior de tramo.",
+    "allOf": [
+        {
+            "$ref": "procedurefunction.json"
+        }
+    ],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "MuskingumChannel"
+            ]
+        },
+        "K": {
+            "type": "number",
+            "description": "Tiempo de tránsito"
+        },
+        "X": {
+            "type": "number",
+            "description": "Factor de forma"
+        },
+        "Proc": {
+            "type": "string",
+            "description": "variante del método",
+            "enum": [
+                "Muskingum"
+            ]
+        },
+        "initial_states": {
+            "anyOf": [
+                {
+                    "type": "array"
+                },
+                {
+                    "type": "number"
+                }
+            ]
+        }
+    },
+    "required": [
+        "K",
+        "X"
+    ],
+    "additionalProperties": false
+}

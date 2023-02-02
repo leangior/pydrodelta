@@ -6,6 +6,7 @@ import pydrodelta.util as util
 import logging
 from  pydrodelta.hecras import HecRasProcedureFunction
 from pydrodelta.polynomial import PolynomialTransformationProcedureFunction
+from pydrodelta.muskingumchannel import MuskingumChannelProcedureFunction
 import os
 import yaml
 from pydrodelta.procedure_function import ProcedureFunction, ProcedureFunctionResults
@@ -15,6 +16,7 @@ import click
 import sys
 from pathlib import Path
 from datetime import datetime 
+from pandas import concat
 
 
 config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
@@ -93,6 +95,42 @@ class Plan():
     def uploadSim(self):
         corrida = self.toCorrida()
         return output_crud.createCorrida(corrida)
+    def toCorridaJson(self,filename):
+        """
+        Guarda corrida en archivo .json
+        """
+        corrida = self.toCorrida()
+        f = open(filename,"w")
+        f.write(json.dumps(corrida))
+        f.close()
+    def toCorridaDataFrame(self,pivot=False):
+        corrida = createEmptyObsDataFrame(extra_columns={"tag":"str","series_id":"int"})
+        for node in self.topology.nodes:
+            for variable in node.variables.values():
+                if variable.series_sim is not None:
+                    for serie in variable.series_sim:
+                        if serie.data is None:
+                            logging.warn("Missing data for series sim:%i, variable:%i, node:%i" % (serie.series_id, variable.id, node.id))
+                            continue
+                        if pivot:
+                            suffix = "_%i" % serie.series_id
+                            corrida = corrida.join(serie.data,rsuffix=suffix,how="outer")
+                        else:
+                            data = serie.data.copy()
+                            data["series_id"] = serie.series_id
+                            corrida = concat([corrida,data])
+        if pivot:
+            del corrida["valor"]
+            del corrida["tag"]
+            del corrida["series_id"]
+        return corrida
+                
+    def toCorridaCsv(self,filename,pivot=False,include_header=True):
+        """
+        Guarda corrida en archivo .csv
+        """
+        corrida = self.toCorridaDataFrame(pivot=pivot)
+        corrida.to_csv(filename,header=include_header)
 
 # def createProcedure(procedure,plan):
 #     if procedure["type"] in procedureClassDict:
@@ -160,6 +198,9 @@ class Procedure():
         self.output = None
         self.states = None
     def loadInput(self,inline=True,pivot=False):
+        """
+        Carga las variables de borde definidas en self.boundaries. De cada elemento de self.boundaries toma .data y lo concatena en una lista. Si pivot=True, devuelve un DataFrame con 
+        """
         if pivot:
             data = createEmptyObsDataFrame(extra_columns={"tag":str})
             columns = ["valor","tag"]
@@ -268,7 +309,9 @@ procedureFunctionDict = {
     "HecRas": HecRasProcedureFunction,
     "HecRasProcedureFunction": HecRasProcedureFunction,
     "PolynomialTransformationProcedureFunction": PolynomialTransformationProcedureFunction,
-    "Polynomial": PolynomialTransformationProcedureFunction
+    "Polynomial": PolynomialTransformationProcedureFunction,
+    "MuskingumChannel": MuskingumChannelProcedureFunction,
+    "MuskingumChannelProcedureFunction": MuskingumChannelProcedureFunction
 }
 
 
@@ -277,11 +320,13 @@ procedureFunctionDict = {
 @click.argument('config_file', type=str)
 @click.option("--csv", "-c", help="Save result of analysis as .csv file", type=str)
 @click.option("--json", "-j", help="Save result of analysis to .json file", type=str)
+@click.option("--export_corrida_json", "-e", help="Save result of simulation to .json file", type=str)
+@click.option("--export_corrida_csv", "-E", help="Save result of simulation to .csv file", type=str)
 @click.option("--pivot", "-p", is_flag=True, help="Pivot output table", default=False,show_default=True)
 @click.option("--upload", "-u", is_flag=True, help="Upload output to database API", default=False, show_default=True)
 @click.option("--include_prono", "-P", is_flag=True, help="Concatenate series_prono to output series",type=bool, default=False, show_default=True)
 @click.option("--verbose", "-v", is_flag=True, help="log to stdout", default=False, show_default=True)
-def run_plan(self,config_file,csv,json,pivot,upload,include_prono,verbose):
+def run_plan(self,config_file,csv,json,export_corrida_json,export_corrida_csv,pivot,upload,include_prono,verbose):
     """
     run plan from plan config file
     
@@ -297,7 +342,7 @@ def run_plan(self,config_file,csv,json,pivot,upload,include_prono,verbose):
         root.addHandler(handler)
     t_config = yaml.load(open(config_file),yaml.CLoader)
     plan = Plan(t_config)
-    plan.execute(include_prono=include_prono)
+    plan.execute(include_prono=include_prono,upload=False)
     if csv is not None:
         plan.topology.saveData(csv,pivot=pivot)
     if json is not None:
@@ -306,4 +351,7 @@ def run_plan(self,config_file,csv,json,pivot,upload,include_prono,verbose):
         plan.topology.uploadData()
         if include_prono:
             plan.topology.uploadDataAsProno()
-
+    if export_corrida_json is not None:
+        plan.toCorridaJson(export_corrida_json)
+    if export_corrida_csv is not None:
+        plan.toCorridaCsv(export_corrida_csv,pivot=pivot)

@@ -134,7 +134,7 @@ class NodeSerie():
         obs_list = data.to_dict(orient="records")
         for obs in obs_list:
             obs["valor"] = None if pandas.isna(obs["valor"]) else obs["valor"]
-            obs["tag"] = None if pandas.isna(obs["tag"]) else obs["tag"]
+            obs["tag"] = None if "tag" not in obs else None if pandas.isna(obs["tag"]) else obs["tag"]
         if remove_nulls:
             obs_list = [x for x in obs_list if x["valor"] is not None] # remove nulls
         return obs_list
@@ -340,13 +340,15 @@ class NodeVariable:
         data.loc[:,"timestart"] = [x.isoformat() for x in data["timestart"]]
         data.loc[:,"timeend"] = [x.isoformat() for x in data["timeend"]]
         if include_series_id:
-            data.loc[:,"series_id"] = self.series_output[0].series_id if not use_node_id else self._node.id
+            data.loc[:,"series_id"] = self._node.id if use_node_id else self.series_output[0].series_id if self.series_output is not None else None
         return data.to_dict(orient="records")
     def outputToList(self,flatten=True):
         """
         returns series_output as list of dict
         if flatten == True, merges observations into single list. Else, returns list of series objects: [{series_id:int, observaciones:[{obs1},{obs2},...]},...]
         """
+        if self.series_output is None:
+            return None
         if self.series_output[0].data is None:
             self.setOutputData()
         list = []
@@ -362,6 +364,8 @@ class NodeVariable:
         """
         return series_prono as list of dict
         if flatten == True, merges observations into single list. Else, returns list of series objects: [{series_id:int, observaciones:[{obs1},{obs2},...]},...]"""
+        if self.series_prono is None:
+            return None
         list = []
         for serie in self.series_prono:
             if flatten:
@@ -686,14 +690,14 @@ class Node:
                 self.variables[variable["id"]] = DerivedNodeVariable(variable,self) if "derived" in variable and variable["derived"] == True else ObservedNodeVariable(variable,self)
     def createDatetimeIndex(self):
         return util.createDatetimeSequence(None, self.time_interval, self.timestart, self.timeend, self.time_offset)
-    def toCSV(self,include_series_id=False,include_header=True):
+    def toCSV(self,include_series_id=True,include_header=True):
         """
         returns self.variables.data as csv
         """
-        data = a5.createEmptyObsDataFrame(extra_columns={"tag":"str"})
+        data = a5.createEmptyObsDataFrame(extra_columns={"tag":"str","series_id":"int"} if include_series_id else {"tag":"str"})
         for variable in self.variables.values():
-            data = data.join(variable.getData(include_series_id=include_series_id))
-        return data.to_csv(include_header=include_header)
+            data = pandas.concat([data,variable.getData(include_series_id=include_series_id)])
+        return data.to_csv(header=include_header)
     def outputToCSV(self,include_header=True):
         """
         returns data of self.variables.series_output as csv
@@ -714,7 +718,9 @@ class Node:
         """
         list = []
         for variable in self.variables.values():
-            list.append(variable.outputToList(flatten=flatten))
+            output_list = variable.outputToList(flatten=flatten)
+            if output_list is not None:
+                list.append(output_list)
         return list
     def variablesPronoToList(self,flatten=True):
         """
@@ -723,7 +729,9 @@ class Node:
         """
         list = []
         for variable in self.variables.values():
-            list.extend(variable.pronoToList(flatten=flatten))
+            pronolist = variable.pronoToList(flatten=flatten)
+            if pronolist is not None:
+                list.extend(pronolist)
         return list
     def adjust(self,plot=True,error_band=True):
         for variable in self.variables.values():
@@ -895,7 +903,8 @@ class Topology():
             self.nodes.append(Node(params=node,timestart=self.timestart,timeend=self.timeend,forecast_timeend=self.forecast_timeend,plan=plan,time_offset=self.time_offset_start,topology=self))
         self.cal_id = params["cal_id"] if "cal_id" in params else None
         self.plot_params = params["plot_params"] if "plot_params" in params else None
-        self.report_file = params["report_file"] if "report_file" in params else None 
+        self.report_file = params["report_file"] if "report_file" in params else None
+        self._plan = plan 
     def addNode(self,node,plan=None):
         self.nodes.append(Node(params=node,timestart=self.timestart,timeend=self.timeend,forecast_timeend=self.forecast_timeend,plan=plan,time_offset=self.time_offset_start,topology=self))
     def batchProcessInput(self,include_prono=False):
@@ -1025,10 +1034,11 @@ class Topology():
             return data.to_dict(orient="records")
         obs_list = []
         for node in self.nodes:
-            if flatten:
-                obs_list.extend(node.toList(True,use_node_id=use_node_id))
-            else:
-                obs_list.append(node.toSerie(True,use_node_id=use_node_id))
+            for variable in node.variables.values():
+                if flatten:
+                    obs_list.extend(variable.toList(True,use_node_id=use_node_id))
+                else:
+                    obs_list.append(variable.toSerie(True,use_node_id=use_node_id))
         return obs_list
     def outputToList(self,pivot=False,flatten=False):
         if pivot:
@@ -1064,18 +1074,27 @@ class Topology():
         return
     def uploadData(self):
         """
-        Uploads analysis data of all nodes
+        Uploads analysis data of all nodes as a5 observaciones
         """
         created = []
         for node in self.nodes:
             obs_created = node.uploadData()
-            created.extend(obs_created)
+            if obs_created is not None and len(obs_created):
+                created.extend(obs_created)
         return created
     def uploadDataAsProno(self,include_obs=True,include_prono=False):
+        """
+        Uploads analysis data of all nodes as a5 pronosticos
+        """
         if self.cal_id is None:
-            raise Exception("Missing required parameter cal_id")
+            if self._plan is not None:
+                 cal_id = self._plan.id
+            else:
+                raise Exception("Missing required parameter cal_id")
+        else:
+            cal_id = self.cal_id
         prono = {
-            "cal_id": self.cal_id,
+            "cal_id": cal_id,
             "forecast_date": self.timeend.isoformat(),
             "series": []
         }
@@ -1252,7 +1271,9 @@ class Topology():
 @click.option("--upload", "-u", is_flag=True, help="Upload output to database API", default=False, show_default=True)
 @click.option("--include_prono", "-P", is_flag=True, help="Concatenate series_prono to output series",type=bool, default=False, show_default=True)
 @click.option("--verbose", "-v", is_flag=True, help="log to stdout", default=False, show_default=True)
-def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose):
+@click.option("--upload_series_prono","-U", is_flag=True, help="upload [adusted] series_prono as pronosticos", type=bool, default=False, show_default=True)
+@click.option("--upload_series_output_as_prono","-o", is_flag=True, help="upload series_output as pronosticos", type=bool, default=False, show_default=True)
+def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose,upload_series_prono,upload_series_output_as_prono):
     """
     run analysis of border conditions from topology file
     
@@ -1275,6 +1296,11 @@ def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose):
         topology.saveData(json,format="json",pivot=pivot)
     if upload:
         uploaded = topology.uploadData()
-        if include_prono:
-            uploaded_prono = topology.uploadDataAsProno()
+    if upload_series_prono:
+        if upload_series_output_as_prono:
+            topology.uploadDataAsProno(True,True)
+        else:
+            topology.uploadDataAsProno(False,True)
+    elif upload_series_output_as_prono:
+        topology.uploadDataAsProno(True,False)
 
