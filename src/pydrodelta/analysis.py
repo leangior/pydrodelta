@@ -29,7 +29,10 @@ config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src
 config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
 
-logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
+input_crud = a5.Crud(config["input_api"])
+output_crud = a5.Crud(config["output_api"])
+
+logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
 logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
 
 class SeriesData(pandas.DataFrame):
@@ -51,7 +54,7 @@ class NodeSerie():
         self.jumps_data = None
     def loadData(self,timestart,timeend):
         logging.debug("Load data for series_id: %i" % (self.series_id))
-        self.metadata = a5.readSerie(self.series_id,timestart,timeend,tipo=self.type)
+        self.metadata = input_crud.readSerie(self.series_id,timestart,timeend,tipo=self.type)
         if len(self.metadata["observaciones"]):
             self.data = a5.observacionesListToDataFrame(self.metadata["observaciones"],tag="obs")
         else:
@@ -131,10 +134,17 @@ class NodeSerie():
         obs_list = data.to_dict(orient="records")
         for obs in obs_list:
             obs["valor"] = None if pandas.isna(obs["valor"]) else obs["valor"]
-            obs["tag"] = None if pandas.isna(obs["valor"]) else obs["valor"]
+            obs["tag"] = None if "tag" not in obs else None if pandas.isna(obs["tag"]) else obs["tag"]
         if remove_nulls:
             obs_list = [x for x in obs_list if x["valor"] is not None] # remove nulls
         return obs_list
+    def toDict(self,timeSupport=None,as_prono=False,remove_nulls=False,max_obs_date:datetime=None):
+        obs_list = self.toList(include_series_id=False,timeSupport=timeSupport,remove_nulls=remove_nulls,max_obs_date=max_obs_date)
+        series_table = "series" if self.type == "puntual" else "series_areal" if self.type == "areal" else "series_rast" if self.type == "raster" else "series"
+        if as_prono:
+            return {"series_id": self.series_id, "series_table": series_table, "pronosticos": obs_list}
+        else:
+            return {"series_id": self.series_id, "series_table": series_table, "observaciones": obs_list}
 
 class NodeSerieProno(NodeSerie):
     def __init__(self,params):
@@ -150,7 +160,7 @@ class NodeSerieProno(NodeSerie):
         self.metadata = None
     def loadData(self,timestart,timeend):
         logging.debug("Load prono data for series_id: %i, cal_id: %i" % (self.series_id, self.cal_id))
-        self.metadata = a5.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
+        self.metadata = input_crud.readSerieProno(self.series_id,self.cal_id,timestart,timeend,qualifier=self.qualifier)
         if len(self.metadata["pronosticos"]):
             self.data = a5.observacionesListToDataFrame(self.metadata["pronosticos"],tag="prono")
         else:
@@ -257,7 +267,7 @@ class NodeVariable:
         if "id" not in params:
             raise ValueError("id of variable must be defined. Node id %i" % node.id)
         self.id = params["id"]
-        self.metadata = a5.readVar(self.id)
+        self.metadata = input_crud.readVar(self.id)
         self.fill_value = params["fill_value"] if "fill_value" in params else None
         self.series_output = [NodeSerie(x) for x in params["series_output"]] if "series_output" in params else [NodeSerie({"series_id": params["output_series_id"]})] if "output_series_id" in params else None
         self.series_sim = None
@@ -330,29 +340,40 @@ class NodeVariable:
         data.loc[:,"timestart"] = [x.isoformat() for x in data["timestart"]]
         data.loc[:,"timeend"] = [x.isoformat() for x in data["timeend"]]
         if include_series_id:
-            data.loc[:,"series_id"] = self.series_output[0].series_id if not use_node_id else self._node.id
+            data.loc[:,"series_id"] = self._node.id if use_node_id else self.series_output[0].series_id if self.series_output is not None else None
         return data.to_dict(orient="records")
     def outputToList(self,flatten=True):
         """
         returns series_output as list of dict
         if flatten == True, merges observations into single list. Else, returns list of series objects: [{series_id:int, observaciones:[{obs1},{obs2},...]},...]
         """
+        if self.series_output is None:
+            return None
         if self.series_output[0].data is None:
             self.setOutputData()
         list = []
         for serie in self.series_output:
-            data = serie.data[serie.data.valor.notnull()].copy()
-            #data.loc[:,"timestart"] = data.index.copy()
-            data.reset_index(inplace=True)
-            data["timeend"] = data["timestart"] + self.time_support if self.time_support is not None else data["timestart"].copy() # [x + self.time_support for x in data.loc[:,"timestart"]] if self.time_support is not None else data.loc[:,"timestart"].copy()
-            data.loc[:,"timestart"] = [x.isoformat() for x in data.loc[:,"timestart"]]
-            data.loc[:,"timeend"] = [x.isoformat() for x in data.loc[:,"timeend"]]
             if flatten:
-                data.loc[:,"series_id"] = serie.series_id
-                list.extend(data.to_dict(orient="records"))
+                obs_list = serie.toList(include_series_id=True,timeSupport=self.time_support,remove_nulls=True)
+                list.extend(obs_list)
             else:
-                series_table = "series" if serie.type == "puntual" else "series_areal" if serie.type == "areal" else "series_rast" if serie.type == "raster" else "series"
-                list.append({"series_id": serie.series_id, "series_table": series_table, "observaciones": data.to_dict(orient="records")})
+                series_dict = serie.toDict(timeSupport=self.time_support, as_prono=False, remove_nulls=True)
+                list.append(series_dict)
+        return list
+    def pronoToList(self,flatten=True):
+        """
+        return series_prono as list of dict
+        if flatten == True, merges observations into single list. Else, returns list of series objects: [{series_id:int, observaciones:[{obs1},{obs2},...]},...]"""
+        if self.series_prono is None:
+            return None
+        list = []
+        for serie in self.series_prono:
+            if flatten:
+                prono_list = serie.toList(include_series_id=True,timeSupport=self.time_support,remove_nulls=True)
+                list.extend(prono_list)
+            else:
+                series_dict = serie.toDict(timeSupport=self.time_support, as_prono=True, remove_nulls=True)
+                list.append(series_dict)
         return list
     def adjust(self,plot=True,error_band=True):
         truth_data = self.series[self.adjust_from["truth"]].data
@@ -413,7 +434,7 @@ class NodeVariable:
             for serie in self.series_output:
                 obs_list = serie.toList(remove_nulls=True,max_obs_date=None if include_prono else self.max_obs_date if hasattr(self,"max_obs_date") else None) # include_series_id=True)
                 try:
-                    created = a5.createObservaciones(obs_list,series_id=serie.series_id)
+                    created = output_crud.createObservaciones(obs_list,series_id=serie.series_id)
                     obs_created.extend(created)
                 except Exception as e:
                     logging.error(str(e))
@@ -669,14 +690,14 @@ class Node:
                 self.variables[variable["id"]] = DerivedNodeVariable(variable,self) if "derived" in variable and variable["derived"] == True else ObservedNodeVariable(variable,self)
     def createDatetimeIndex(self):
         return util.createDatetimeSequence(None, self.time_interval, self.timestart, self.timeend, self.time_offset)
-    def toCSV(self,include_series_id=False,include_header=True):
+    def toCSV(self,include_series_id=True,include_header=True):
         """
         returns self.variables.data as csv
         """
-        data = a5.createEmptyObsDataFrame(extra_columns={"tag":"str"})
+        data = a5.createEmptyObsDataFrame(extra_columns={"tag":"str","series_id":"int"} if include_series_id else {"tag":"str"})
         for variable in self.variables.values():
-            data = data.join(variable.getData(include_series_id=include_series_id))
-        return data.to_csv(include_header=include_header)
+            data = pandas.concat([data,variable.getData(include_series_id=include_series_id)])
+        return data.to_csv(header=include_header)
     def outputToCSV(self,include_header=True):
         """
         returns data of self.variables.series_output as csv
@@ -697,7 +718,20 @@ class Node:
         """
         list = []
         for variable in self.variables.values():
-            list.append(variable.outputToList(flatten=flatten))
+            output_list = variable.outputToList(flatten=flatten)
+            if output_list is not None:
+                list.append(output_list)
+        return list
+    def variablesPronoToList(self,flatten=True):
+        """
+        if flatten=True return list of dict each containing one forecast time-value pair (pronosticos)
+        else returns list of dict each containing series_id:int and pronosticos:list 
+        """
+        list = []
+        for variable in self.variables.values():
+            pronolist = variable.pronoToList(flatten=flatten)
+            if pronolist is not None:
+                list.extend(pronolist)
         return list
     def adjust(self,plot=True,error_band=True):
         for variable in self.variables.values():
@@ -869,7 +903,8 @@ class Topology():
             self.nodes.append(Node(params=node,timestart=self.timestart,timeend=self.timeend,forecast_timeend=self.forecast_timeend,plan=plan,time_offset=self.time_offset_start,topology=self))
         self.cal_id = params["cal_id"] if "cal_id" in params else None
         self.plot_params = params["plot_params"] if "plot_params" in params else None
-        self.report_file = params["report_file"] if "report_file" in params else None 
+        self.report_file = params["report_file"] if "report_file" in params else None
+        self._plan = plan 
     def addNode(self,node,plan=None):
         self.nodes.append(Node(params=node,timestart=self.timestart,timeend=self.timeend,forecast_timeend=self.forecast_timeend,plan=plan,time_offset=self.time_offset_start,topology=self))
     def batchProcessInput(self,include_prono=False):
@@ -999,10 +1034,11 @@ class Topology():
             return data.to_dict(orient="records")
         obs_list = []
         for node in self.nodes:
-            if flatten:
-                obs_list.extend(node.toList(True,use_node_id=use_node_id))
-            else:
-                obs_list.append(node.toSerie(True,use_node_id=use_node_id))
+            for variable in node.variables.values():
+                if flatten:
+                    obs_list.extend(variable.toList(True,use_node_id=use_node_id))
+                else:
+                    obs_list.append(variable.toSerie(True,use_node_id=use_node_id))
         return obs_list
     def outputToList(self,pivot=False,flatten=False):
         if pivot:
@@ -1014,7 +1050,7 @@ class Topology():
             return data.to_dict(orient="records")
         obs_list = []
         for node in self.nodes:
-            obs_list.extend(node.outputToList(flatten=flatten))
+            obs_list.extend(node.variablesOutputToList(flatten=flatten))
         return obs_list
     def saveData(self,file : str,format="csv",pivot=False):
         f = open(file,"w")
@@ -1038,28 +1074,42 @@ class Topology():
         return
     def uploadData(self):
         """
-        Uploads analysis data of all nodes
+        Uploads analysis data of all nodes as a5 observaciones
         """
         created = []
         for node in self.nodes:
             obs_created = node.uploadData()
-            created.extend(obs_created)
+            if obs_created is not None and len(obs_created):
+                created.extend(obs_created)
         return created
-    def uploadDataAsProno(self):
+    def uploadDataAsProno(self,include_obs=True,include_prono=False):
+        """
+        Uploads analysis data of all nodes as a5 pronosticos
+        """
         if self.cal_id is None:
-            raise Exception("Missing required parameter cal_id")
+            if self._plan is not None:
+                 cal_id = self._plan.id
+            else:
+                raise Exception("Missing required parameter cal_id")
+        else:
+            cal_id = self.cal_id
         prono = {
-            "cal_id": self.cal_id,
+            "cal_id": cal_id,
             "forecast_date": self.timeend.isoformat(),
             "series": []
         }
-        for node in self.nodes:
-            serieslist = node.outputToList(flatten=False)
-            for serie in serieslist:
-                serie["pronosticos"] = serie["observaciones"]
-                del serie["observaciones"]
-            prono["series"].extend(serieslist)
-        return a5.createCorrida(prono)
+        if include_obs:
+            for node in self.nodes:
+                serieslist = node.variablesOutputToList(flatten=False)
+                for serie in serieslist:
+                    serie["pronosticos"] = serie["observaciones"]
+                    del serie["observaciones"]
+                prono["series"].extend(serieslist)
+        if include_prono:
+            for node in self.nodes:
+                serieslist = node.variablesPronoToList(flatten=False)
+                prono["series"].extend(serieslist)
+        return output_crud.createCorrida(prono)
 
     def pivotData(self,include_tag=True,use_output_series_id=True,use_node_id=False,nodes=None):
         if nodes is None:
@@ -1221,7 +1271,9 @@ class Topology():
 @click.option("--upload", "-u", is_flag=True, help="Upload output to database API", default=False, show_default=True)
 @click.option("--include_prono", "-P", is_flag=True, help="Concatenate series_prono to output series",type=bool, default=False, show_default=True)
 @click.option("--verbose", "-v", is_flag=True, help="log to stdout", default=False, show_default=True)
-def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose):
+@click.option("--upload_series_prono","-U", is_flag=True, help="upload [adusted] series_prono as pronosticos", type=bool, default=False, show_default=True)
+@click.option("--upload_series_output_as_prono","-o", is_flag=True, help="upload series_output as pronosticos", type=bool, default=False, show_default=True)
+def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose,upload_series_prono,upload_series_output_as_prono):
     """
     run analysis of border conditions from topology file
     
@@ -1244,6 +1296,11 @@ def run_analysis(self,config_file,csv,json,pivot,upload,include_prono,verbose):
         topology.saveData(json,format="json",pivot=pivot)
     if upload:
         uploaded = topology.uploadData()
-        if include_prono:
-            uploaded_prono = topology.uploadDataAsProno()
+    if upload_series_prono:
+        if upload_series_output_as_prono:
+            topology.uploadDataAsProno(True,True)
+        else:
+            topology.uploadDataAsProno(False,True)
+    elif upload_series_output_as_prono:
+        topology.uploadDataAsProno(True,False)
 

@@ -11,7 +11,11 @@
         "enum": [
           "ProcedureFunction",
           "HecRasProcedureFunction",
-          "HecRas"
+          "HecRas",
+          "Polynomial",
+          "PolynomialTransformationProcedureFunction",
+          "MuskingumChannel",
+          "MuskingumChannelProcedureFunction"
         ]
       },
       "parameters": {

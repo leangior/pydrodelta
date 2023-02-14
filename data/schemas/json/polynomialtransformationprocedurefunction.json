@@ -1,0 +1,36 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "polynomialtransformationprocedurefunction.json",
+    "title": "PolynomialTransformationProcedureFunction",
+    "type": "object",
+    "description": "Polynomial transformation procedure function. Being x the input values, it returns intercept + x**1 * coefficient[0] [ + x**2 * coefficient[1] ] and so on for additional coefficients.",
+    "allOf": [
+        {
+            "$ref": "procedurefunction.json"
+        }
+    ],
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "Polynomial"
+            ]
+        },
+        "coefficients": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "description": "ordered coefficients starting from the linear (mandatory), then the cuadratic, and so on",
+            "minItems": 1
+        },
+        "intercept": {
+            "type": "number",
+            "description": "intercept of the linear transformation. Defaults to 0"
+        }
+    },
+    "required": [
+        "type",
+        "coefficients"
+    ]
+}

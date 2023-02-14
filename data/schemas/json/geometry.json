@@ -1,0 +1,72 @@
+{
+    "$id": "geometry.json",
+    "schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Geometry",
+    "type": "object",
+    "properties": {
+      "type": {
+        "description": "tipo de geometría",
+        "type": "string",
+        "enum": [
+          "Point",
+          "MultiPoint",
+          "LineString",
+          "MultiLineString",
+          "Polygon",
+          "MultiPolygon",
+          "GeometryCollection"
+        ]
+      },
+      "coordinates": {
+        "description": "coordenadas",
+        "oneOf": [
+          {
+            "$ref": "#/$defs/Position"
+          },
+          {
+            "$ref": "#/$defs/LineString"
+          },
+          {
+            "$ref": "#/$defs/Polygon"
+          },
+          {
+            "$ref": "#/$defs/MultiPolygon"
+          }
+        ]
+      }
+    },
+    "required": [
+      "type",
+      "coordinates"
+    ],
+    "$defs": {
+        "Position": {
+            "type": "array",
+            "items": {
+            "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 3
+        },
+        "LineString": {
+            "type": "array",
+            "items": {
+            "$ref": "#/$defs/Position"
+            },
+            "minItems": 2
+        },
+        "Polygon": {
+            "type": "array",
+            "items": {
+            "$ref": "#/$defs/LineString"
+            }
+        },
+        "MultiPolygon": {
+            "type": "array",
+            "items": {
+            "$ref": "#/$defs/Polygon"
+            }
+        }
+    }
+}
+  

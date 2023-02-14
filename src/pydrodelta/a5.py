@@ -6,10 +6,14 @@ import json
 import os
 from datetime import datetime
 import yaml
+import logging
 
 config_file = open("%s/config/config.yml" % os.environ["PYDRODELTA_DIR"]) # "src/pydrodelta/config/config.json")
 config = yaml.load(config_file,yaml.CLoader)
 config_file.close()
+
+logging.basicConfig(filename="%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]), level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
+logging.FileHandler("%s/%s" % (os.environ["PYDRODELTA_DIR"],config["log"]["filename"]),"w+")
 
 
 schemas = {
@@ -1261,47 +1265,190 @@ class Observacion():
             
 # CRUD
 
-def readSeries(tipo="puntual",series_id=None,area_id=None,estacion_id=None,escena_id=None,var_id=None,proc_id=None,unit_id=None,fuentes_id=None,tabla=None,id_externo=None,geom=None,include_geom=None,no_metadata=None,date_range_before=None,date_range_after=None,getMonthlyStats=None,getStats=None,getPercentiles=None,percentil=None,use_proxy=False):
-    if date_range_before is not None:
-        date_range_before = date_range_before if isinstance(date_range_before,str) else date_range_before.isoformat()
-    if date_range_after is not None:
-        date_range_after =date_range_after if isinstance(date_range_after,str) else date_range_after.isoformat()
-    params = locals()
-    del params["use_proxy"]
-    del params["tipo"]
-    response = requests.get("%s/obs/%s/series" % (config["api"]["url"], tipo),
-        params = params,
-        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    if response.status_code != 200:
-        raise Exception("request failed: %s" % response.text)
-    json_response = response.json()
-    return json_response
+class Crud():
+    def __init__(self,params):
+        self.url = params["url"]
+        self.token = params["token"]
+        self.proxy_dict = params["proxy_dict"] if "proxy_dict" in params else None
+    
+    def readSeries(self,tipo="puntual",series_id=None,area_id=None,estacion_id=None,escena_id=None,var_id=None,proc_id=None,unit_id=None,fuentes_id=None,tabla=None,id_externo=None,geom=None,include_geom=None,no_metadata=None,date_range_before=None,date_range_after=None,getMonthlyStats=None,getStats=None,getPercentiles=None,percentil=None,use_proxy=False):
+        if date_range_before is not None:
+            date_range_before = date_range_before if isinstance(date_range_before,str) else date_range_before.isoformat()
+        if date_range_after is not None:
+            date_range_after =date_range_after if isinstance(date_range_after,str) else date_range_after.isoformat()
+        params = locals()
+        del params["use_proxy"]
+        del params["tipo"]
+        response = requests.get("%s/obs/%s/series" % (self.url, tipo),
+            params = params,
+            headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        if response.status_code != 200:
+            raise Exception("request failed: %s" % response.text)
+        json_response = response.json()
+        return json_response
 
-def readSerie(series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=False):
-    params = {}
-    if timestart is not None and timeend is not None:
-        params = {
-            "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
-            "timeend": timeend if isinstance(timeend,str) else timeend.isoformat()
+    def readSerie(self,series_id,timestart=None,timeend=None,tipo="puntual",use_proxy=False):
+        params = {}
+        if timestart is not None and timeend is not None:
+            params = {
+                "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
+                "timeend": timeend if isinstance(timeend,str) else timeend.isoformat()
+            }
+        response = requests.get("%s/obs/%s/series/%i" % (self.url, tipo, series_id),
+            params = params,
+            headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        if response.status_code != 200:
+            raise Exception("request failed: %s" % response.text)
+        json_response = response.json()
+        return json_response
+
+    def createObservaciones(self,data,series_id : int,column="valor",tipo="puntual", timeSupport=None,use_proxy=False):
+        if isinstance(data,pandas.DataFrame):
+            data = observacionesDataFrameToList(data,series_id,column,timeSupport)
+        [validate(x,"Observacion") for x in data]
+        url = "%s/obs/%s/series/%i/observaciones" % (self.url, tipo, series_id) if series_id is not None else "%s/obs/%s/observaciones" % (self.url, tipo)
+        response = requests.post(url, json = {
+                "observaciones": data
+            }, headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        if response.status_code != 200:
+            raise Exception("request failed: %s" % response.text)
+        json_response = response.json()
+        return json_response
+
+    def createCorrida(self,data,cal_id=None,use_proxy=False):
+        validate(data,"Corrida")
+        cal_id = cal_id if cal_id is not None else data["cal_id"] if "cal_id" in data else None
+        if cal_id is None:
+            raise Exception("Missing parameter cal_id")
+        url = "%s/sim/calibrados/%i/corridas" % (self.url, cal_id)
+        response = requests.post(url, json = data, headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        logging.debug("createCorrida url: %s" % response.url)
+        if response.status_code != 200:
+            raise Exception("request failed: status: %i, message: %s" % (response.status_code, response.text))
+        json_response = response.json()
+        return json_response
+
+    def readVar(self,var_id,use_proxy=False):
+        response = requests.get("%s/obs/variables/%i" % (self.url, var_id),
+            headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        if response.status_code != 200:
+            raise Exception("request failed: %s" % response.text)
+        json_response = response.json()
+        return json_response
+
+    def readSerieProno(self,series_id,cal_id,timestart=None,timeend=None,use_proxy=False,cor_id=None,forecast_date=None,qualifier=None):
+        """
+        Reads prono serie from a5 API
+        if forecast_date is not None, cor_id is overwritten by first corridas match
+        returns Corridas object { series_id: int, cor_id: int, forecast_date: str, pronosticos: [{timestart:str,valor:float},...]}
+        """
+        params = {}
+        if forecast_date is not None:
+            corridas_response = requests.get("%s/sim/calibrados/%i/corridas" % (self.url, cal_id),
+                params = {
+                    "forecast_date": forecast_date if isinstance(forecast_date,str) else forecast_date.isoformat()
+                },
+                headers = {'Authorization': 'Bearer ' + self.token},
+                proxies = self.proxy_dict if use_proxy else None
+            )
+            if corridas_response.status_code != 200:
+                raise Exception("request failed: %s" % corridas_response.text)
+            corridas = corridas_response.json()
+            if len(corridas):
+                cor_id = corridas[0]["cor_id"]
+            else:
+                print("Warning: series %i from cal_id %i at forecast_date %s not found" % (series_id,cal_id,forecast_date))
+                return {
+                "series_id": series_id,
+                "pronosticos": []
+            }
+        if timestart is not None and timeend is not None:
+            params = {
+                "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
+                "timeend": timeend if isinstance(timestart,str) else timeend.isoformat(),
+                "series_id": series_id
+            }
+        if qualifier is not None:
+            params["qualifier"] = qualifier
+        url = "%s/sim/calibrados/%i/corridas/last" % (self.url, cal_id)
+        if cor_id is not None:
+            url = "%s/sim/calibrados/%i/corridas/%i" % (self.url, cal_id, cor_id)
+        response = requests.get(url,
+            params = params,
+            headers = {'Authorization': 'Bearer ' + self.token},
+            proxies = self.proxy_dict if use_proxy else None
+        )
+        if response.status_code != 200:
+            raise Exception("request failed: %s" % response.text)
+        json_response = response.json()
+        if "series" not in json_response:
+            print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
+            return {
+                "forecast_date": json_response["forecast_date"],
+                "cal_id": json_response["cal_id"],
+                "cor_id": json_response["cor_id"],
+                "series_id": series_id,
+                "qualifier": None,
+                "pronosticos": []
+            }
+        if not len(json_response["series"]):
+            print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
+            return {
+                "forecast_date": json_response["forecast_date"],
+                "cal_id": json_response["cal_id"],
+                "cor_id": json_response["cor_id"],
+                "series_id": series_id,
+                "qualifier": None,
+                "pronosticos": []
+            }
+        if "pronosticos" not in json_response["series"][0]:
+            print("Warning: pronosticos from series %i from cal_id %i not found" % (series_id,cal_id))
+            return {
+                "forecast_date": json_response["forecast_date"],
+                "cal_id": json_response["cal_id"],
+                "cor_id": json_response["cor_id"],
+                "series_id": json_response["series"][0]["series_id"],
+                "qualifier": json_response["series"][0]["qualifier"],
+                "pronosticos": []
+            }
+        if not len(json_response["series"][0]["pronosticos"]):
+            print("Warning: pronosticos from series %i from cal_id %i is empty" % (series_id,cal_id))
+            return {
+                "forecast_date": json_response["forecast_date"],
+                "cal_id": json_response["cal_id"],
+                "cor_id": json_response["cor_id"],
+                "series_id": json_response["series"][0]["series_id"],
+                "qualifier": json_response["series"][0]["qualifier"],
+                "pronosticos": []
+            }
+        json_response["series"][0]["pronosticos"] = [ { "timestart": x[0], "valor": x[2]} for x in json_response["series"][0] ["pronosticos"]] # "series_id": series_id, "timeend": x[1] "qualifier":x[3]
+        return {
+            "forecast_date": json_response["forecast_date"],
+            "cal_id": json_response["cal_id"],
+            "cor_id": json_response["cor_id"],
+            "series_id": json_response["series"][0]["series_id"],
+            "qualifier": json_response["series"][0]["qualifier"],
+            "pronosticos": json_response["series"][0]["pronosticos"]
         }
-    response = requests.get("%s/obs/%s/series/%i" % (config["api"]["url"], tipo, series_id),
-        params = params,
-        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    if response.status_code != 200:
-        raise Exception("request failed: %s" % response.text)
-    json_response = response.json()
-    return json_response
+
+## AUX functions
 
 def observacionesDataFrameToList(data : pandas.DataFrame,series_id : int,column="valor",timeSupport=None):
     # data: dataframe con índice tipo datetime y valores en columna "column"
     # timeSupport: timedelta object
     if data.index.dtype.name != 'datetime64[ns, America/Argentina/Buenos_Aires]':
-       data.index = data.index.map(util.tryParseAndLocalizeDate)
-       # raise Exception("index must be of type datetime64[ns, America/Argentina/Buenos_Aires]'")
+        data.index = data.index.map(util.tryParseAndLocalizeDate)
+    # raise Exception("index must be of type datetime64[ns, America/Argentina/Buenos_Aires]'")
     if column not in data.columns:
         raise Exception("column %s not found in data" % column)
     data = data.sort_index()
@@ -1337,141 +1484,6 @@ def createEmptyObsDataFrame(extra_columns : dict=None):
             cnames.append(cname)
     data.index = data["timestart"]
     return data [cnames]
-
-def createObservaciones(data,series_id : int,column="valor",tipo="puntual", timeSupport=None,use_proxy=False):
-    if isinstance(data,pandas.DataFrame):
-        data = observacionesDataFrameToList(data,series_id,column,timeSupport)
-    [validate(x,"Observacion") for x in data]
-    url = "%s/obs/%s/series/%i/observaciones" % (config["api"]["url"], tipo, series_id) if series_id is not None else "%s/obs/%s/observaciones" % (config["api"]["url"], tipo)
-    response = requests.post(url, json = {
-            "observaciones": data
-        }, headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    if response.status_code != 200:
-        raise Exception("request failed: %s" % response.text)
-    json_response = response.json()
-    return json_response
-
-def createCorrida(data,cal_id=None,use_proxy=False):
-    validate(data,"Corrida")
-    cal_id = cal_id if cal_id is not None else data["cal_id"] if "cal_id" in data else None
-    if cal_id is None:
-        raise Exception("Missing parameter cal_id")
-    url = "%s/sim/calibrados/%i/corridas" % (config["api"]["url"], cal_id)
-    response = requests.post(url, json = data, headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    print(response.url)
-    if response.status_code != 200:
-        raise Exception("request failed: status: %i, message: %s" % (response.status_code, response.text))
-    json_response = response.json()
-    return json_response
-
-def readVar(var_id,use_proxy=False):
-    response = requests.get("%s/obs/variables/%i" % (config["api"]["url"], var_id),
-        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    if response.status_code != 200:
-        raise Exception("request failed: %s" % response.text)
-    json_response = response.json()
-    return json_response
-
-def readSerieProno(series_id,cal_id,timestart=None,timeend=None,use_proxy=False,cor_id=None,forecast_date=None,qualifier=None):
-    """
-    Reads prono serie from a5 API
-    if forecast_date is not None, cor_id is overwritten by first corridas match
-    returns Corridas object { series_id: int, cor_id: int, forecast_date: str, pronosticos: [{timestart:str,valor:float},...]}
-    """
-    params = {}
-    if forecast_date is not None:
-        corridas_response = requests.get("%s/sim/calibrados/%i/corridas" % (config["api"]["url"], cal_id),
-            params = {
-                "forecast_date": forecast_date if isinstance(forecast_date,str) else forecast_date.isoformat()
-            },
-            headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-            proxies = config["proxy_dict"] if use_proxy else None
-        )
-        if corridas_response.status_code != 200:
-            raise Exception("request failed: %s" % corridas_response.text)
-        corridas = corridas_response.json()
-        if len(corridas):
-            cor_id = corridas[0]["cor_id"]
-        else:
-            print("Warning: series %i from cal_id %i at forecast_date %s not found" % (series_id,cal_id,forecast_date))
-            return {
-            "series_id": series_id,
-            "pronosticos": []
-        }
-    if timestart is not None and timeend is not None:
-        params = {
-            "timestart": timestart if isinstance(timestart,str) else timestart.isoformat(),
-            "timeend": timeend if isinstance(timestart,str) else timeend.isoformat(),
-            "series_id": series_id
-        }
-    if qualifier is not None:
-        params["qualifier"] = qualifier
-    url = "%s/sim/calibrados/%i/corridas/last" % (config["api"]["url"], cal_id)
-    if cor_id is not None:
-        url = "%s/sim/calibrados/%i/corridas/%i" % (config["api"]["url"], cal_id, cor_id)
-    response = requests.get(url,
-        params = params,
-        headers = {'Authorization': 'Bearer ' + config["api"]["token"]},
-        proxies = config["proxy_dict"] if use_proxy else None
-    )
-    if response.status_code != 200:
-        raise Exception("request failed: %s" % response.text)
-    json_response = response.json()
-    if "series" not in json_response:
-        print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
-        return {
-            "forecast_date": json_response["forecast_date"],
-            "cal_id": json_response["cal_id"],
-            "cor_id": json_response["cor_id"],
-            "series_id": series_id,
-            "qualifier": None,
-            "pronosticos": []
-        }
-    if not len(json_response["series"]):
-        print("Warning: series %i from cal_id %i not found" % (series_id,cal_id))
-        return {
-            "forecast_date": json_response["forecast_date"],
-            "cal_id": json_response["cal_id"],
-            "cor_id": json_response["cor_id"],
-            "series_id": series_id,
-            "qualifier": None,
-            "pronosticos": []
-        }
-    if "pronosticos" not in json_response["series"][0]:
-        print("Warning: pronosticos from series %i from cal_id %i not found" % (series_id,cal_id))
-        return {
-            "forecast_date": json_response["forecast_date"],
-            "cal_id": json_response["cal_id"],
-            "cor_id": json_response["cor_id"],
-            "series_id": json_response["series"][0]["series_id"],
-            "qualifier": json_response["series"][0]["qualifier"],
-            "pronosticos": []
-        }
-    if not len(json_response["series"][0]["pronosticos"]):
-        print("Warning: pronosticos from series %i from cal_id %i is empty" % (series_id,cal_id))
-        return {
-            "forecast_date": json_response["forecast_date"],
-            "cal_id": json_response["cal_id"],
-            "cor_id": json_response["cor_id"],
-            "series_id": json_response["series"][0]["series_id"],
-            "qualifier": json_response["series"][0]["qualifier"],
-            "pronosticos": []
-        }
-    json_response["series"][0]["pronosticos"] = [ { "timestart": x[0], "valor": x[2]} for x in json_response["series"][0] ["pronosticos"]] # "series_id": series_id, "timeend": x[1] "qualifier":x[3]
-    return {
-        "forecast_date": json_response["forecast_date"],
-        "cal_id": json_response["cal_id"],
-        "cor_id": json_response["cor_id"],
-        "series_id": json_response["series"][0]["series_id"],
-        "qualifier": json_response["series"][0]["qualifier"],
-        "pronosticos": json_response["series"][0]["pronosticos"]
-    }
 
 ## EJEMPLO
 '''

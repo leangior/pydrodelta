@@ -82,6 +82,8 @@ extract content into $PROJECT_DIR
 
     pydrodelta run_analysis pydrodelta_config/288_bordes_curados.json -u -p -c bordes_288.csv
 
+    pydrodelta run-plan data/plans/dummy_polynomial.yml -c tmp/boundaries.csv -e tmp/corrida.json
+
 #### References
 
 Instituto Nacional del Agua

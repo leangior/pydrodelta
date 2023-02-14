@@ -3,21 +3,14 @@ from datetime import datetime, timedelta
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from pydrodelta.validation import getSchema, validate
 from pydrodelta.procedure_function import ProcedureFunction, ProcedureFunctionResults
 from pathlib import Path
 import jsonschema
 import yaml
 
-schemas = {}
-plan_schema = open("%s/data/schemas/json/hecrasprocedurefunction.json" % os.environ["PYDRODELTA_DIR"])
-schemas["HecRasProcedureFunction"] = yaml.load(plan_schema,yaml.CLoader)
-
-
-base_path = Path("%s/data/schemas/json" % os.environ["PYDRODELTA_DIR"])
-resolver = jsonschema.validators.RefResolver(
-    base_uri=f"{base_path.as_uri()}/",
-    referrer=True,
-)
+schemas, resolver = getSchema("HecRasProcedureFunction","data/schemas/json")
+schema = schemas["HecRasProcedureFunction"]
 
 # from pyras.controllers import RAS41, kill_ras
 # from pyras.controllers.hecras import ras_constants as RC
@@ -46,7 +39,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         super().__init__(params,procedure)
         jsonschema.validate(
             instance=params,
-            schema=schemas["HecRasProcedureFunction"],
+            schema=schema,
             resolver=resolver)
         self.workspace = params["workspace"]
         self.model_path = params["model_path"]
@@ -99,7 +92,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         # quit()
 
 
-    def run(self,input=None, inline=True):
+    def run(self,input=None):
         """run procedure. Produces list of SeriesData of output series with index of located datetimes, column names of 'valor' and values as floats.
         
         :param inline: save output inline (self.output). Default: True
@@ -159,10 +152,7 @@ class HecRasProcedureFunction(ProcedureFunction):
         # Guarda en CSV
         output.to_csv(self.workspace+'Salidas.csv', index=False, sep=',')
 
-        if inline:
-            self.output = output
-        else:
-            return output
+        return output, ProcedureFunctionResults()
 
 
 
