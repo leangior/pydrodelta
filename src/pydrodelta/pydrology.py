@@ -326,5 +326,3 @@ if __name__ == "__main__":
     import sys
 
 #3. Modelos PQ/QQ
-
-    
